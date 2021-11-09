@@ -9,11 +9,13 @@ namespace StandaloneKestrelServer
 {
     public class Application : IHttpApplication<Application.Context>
     {
+        private readonly RequestDelegate _requestPipeline;
 
         private readonly ILogger _logger;
 
-        public Application(ILoggerFactory loggerFactory)
+        public Application(RequestDelegate requestPipeline, ILoggerFactory loggerFactory)
         {
+            _requestPipeline = requestPipeline;
             _logger = loggerFactory.CreateLogger<Application>();
         }
 
@@ -29,7 +31,7 @@ namespace StandaloneKestrelServer
         public async Task ProcessRequestAsync(Context context)
         {
             _logger.LogDebug("ProcessRequestAsync: Started");
-            await context.HttpContext.Response.WriteAsync("It Works!");
+            await _requestPipeline(context.HttpContext);
             _logger.LogDebug("ProcessRequestAsync: Done");
         }
 

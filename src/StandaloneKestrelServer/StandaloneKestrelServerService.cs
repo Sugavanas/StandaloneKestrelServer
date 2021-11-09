@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
@@ -47,10 +48,24 @@ namespace StandaloneKestrelServer
                 //TODO: Exit
             }
 
-            ConfigureDefaultAddress();
+            var addresses = GetAddressesOrDefault();
 
-            var app = new Application(_loggerFactory);
+            var applicationBuilder = new ApplicationBuilder(_serviceProvider);
+            ServerOptions.RequestPipeline?.Invoke(applicationBuilder);
+
+            var requestPipeline = applicationBuilder.Build();
+
+            var app = new Application(requestPipeline, _loggerFactory);
+
             await Server.StartAsync(app, cancellationToken);
+
+            if (addresses != null)
+            {
+                foreach (var address in addresses)
+                {
+                    _logger.LogInformation("{Name}: Now listening on: {Address}", ServerOptions.Name, address);
+                }
+            }
         }
 
         public async Task StopAsync(CancellationToken cancellationToken)
@@ -74,7 +89,7 @@ namespace StandaloneKestrelServer
             }
         }
 
-        protected virtual void ConfigureDefaultAddress()
+        protected virtual ICollection<string> GetAddressesOrDefault()
         {
             var serverAddressesFeature = Server.Features?.Get<IServerAddressesFeature>();
             var addresses = serverAddressesFeature?.Addresses;
@@ -84,6 +99,8 @@ namespace StandaloneKestrelServer
                     ServerOptions.Name);
                 addresses.Add("http://localhost:8080");
             }
+
+            return addresses;
         }
     }
 }

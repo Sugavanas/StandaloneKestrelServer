@@ -1,4 +1,5 @@
 ﻿using System;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -19,6 +20,14 @@ namespace SampleServer
                 .ConfigureServices(services =>
                 {
                     services.AddHostedService<StandaloneKestrelServerService>();
+                    services.Configure<StandaloneKestrelServerOptions>(options =>
+                    {
+                        options.RequestPipeline = builder =>
+                        {
+                            builder.Use(next =>
+                                async context => await context.Response.WriteAsync("It Works!"));
+                        };
+                    });
                 });
     }
 }
