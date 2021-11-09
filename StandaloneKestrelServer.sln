@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StandaloneKestrelServer", "src\StandaloneKestrelServer\StandaloneKestrelServer.csproj", "{1F286C92-074D-40C8-88B7-9938145B1A81}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleServer", "tests\SampleServer\SampleServer.csproj", "{CCA00BBC-52C8-4242-8E05-0F2595CEC4F3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +14,9 @@ Global
 		{1F286C92-074D-40C8-88B7-9938145B1A81}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1F286C92-074D-40C8-88B7-9938145B1A81}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1F286C92-074D-40C8-88B7-9938145B1A81}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CCA00BBC-52C8-4242-8E05-0F2595CEC4F3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CCA00BBC-52C8-4242-8E05-0F2595CEC4F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CCA00BBC-52C8-4242-8E05-0F2595CEC4F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CCA00BBC-52C8-4242-8E05-0F2595CEC4F3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
