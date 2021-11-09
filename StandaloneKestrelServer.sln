@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StandaloneKestrelServer", "StandaloneKestrelServer\StandaloneKestrelServer.csproj", "{1F286C92-074D-40C8-88B7-9938145B1A81}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StandaloneKestrelServer", "src\StandaloneKestrelServer\StandaloneKestrelServer.csproj", "{1F286C92-074D-40C8-88B7-9938145B1A81}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
