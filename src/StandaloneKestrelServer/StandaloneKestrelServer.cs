@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Connections;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -14,6 +15,7 @@ namespace StandaloneKestrelServer
         {
         }
 
+        [ActivatorUtilitiesConstructor]
         public StandaloneKestrelServer(IOptions<StandaloneKestrelServerOptions> standaloneKestrelServerOptions,
             ILoggerFactory loggerFactory)
             : base(GetKestrelServerOptions(standaloneKestrelServerOptions.Value), GetTransportFactory(loggerFactory),
