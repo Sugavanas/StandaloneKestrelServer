@@ -1,6 +1,7 @@
 using System;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 
 namespace StandaloneKestrelServer.Extensions
 {
@@ -12,8 +13,13 @@ namespace StandaloneKestrelServer.Extensions
             {
                 service.AddOptions<StandaloneKestrelServerOptions>();
                 service.AddHostedService<StandaloneKestrelServerService>();
+                service.AddTransient<IConfigureOptions<StandaloneKestrelServerOptions>, StandaloneKestrelServerOptionsSetup>();
                 service.Configure<StandaloneKestrelServerOptions>(
                     context.Configuration.GetSection("StandaloneKestrel"));
+                service.Configure((StandaloneKestrelServerOptions options) =>
+                    options.ConfigureKestrel(
+                        context.Configuration.GetSection("StandaloneKestrel").GetSection("Kestrel"),
+                        true));
             });
         }
 

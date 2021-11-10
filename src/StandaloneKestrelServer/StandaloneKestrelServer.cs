@@ -9,12 +9,6 @@ namespace StandaloneKestrelServer
 {
     public class StandaloneKestrelServer : KestrelServer
     {
-        public StandaloneKestrelServer(IOptions<KestrelServerOptions> options,
-            IConnectionListenerFactory transportFactory, ILoggerFactory loggerFactory)
-            : base(options, transportFactory, loggerFactory)
-        {
-        }
-
         [ActivatorUtilitiesConstructor]
         public StandaloneKestrelServer(IOptions<StandaloneKestrelServerOptions> standaloneKestrelServerOptions,
             ILoggerFactory loggerFactory)
@@ -22,7 +16,13 @@ namespace StandaloneKestrelServer
                 loggerFactory)
         {
         }
-
+        
+        public StandaloneKestrelServer(IOptions<KestrelServerOptions> options,
+            IConnectionListenerFactory transportFactory, ILoggerFactory loggerFactory)
+            : base(options, transportFactory, loggerFactory)
+        {
+        }
+        
         protected static IOptions<KestrelServerOptions> GetKestrelServerOptions(
             StandaloneKestrelServerOptions standaloneKestrelServerOptions)
         {

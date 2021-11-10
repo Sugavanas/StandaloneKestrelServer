@@ -1,6 +1,7 @@
 using System;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Microsoft.Extensions.Configuration;
 
 namespace StandaloneKestrelServer
 {
@@ -10,11 +11,13 @@ namespace StandaloneKestrelServer
 
         public virtual KestrelServerOptions KestrelServerOptions { get; set; } = new KestrelServerOptions();
 
-        public virtual Type ServerType
+        public virtual string ServerType
         {
-            get => _serverType;
+            get => _serverType.AssemblyQualifiedName;
             set => UseServer(value);
         }
+
+        public Type RealServerType => _serverType;
 
         public virtual Action<IApplicationBuilder> RequestPipeline { get; set; } = default;
 
@@ -32,6 +35,16 @@ namespace StandaloneKestrelServer
             return this;
         }
 
+        public virtual StandaloneKestrelServerOptions UseServer(string server)
+        {
+            var type = Type.GetType(server);
+
+            if (type == null)
+                throw new Exception($"{server} was not found.");
+
+            return UseServer(type);
+        }
+
         public virtual StandaloneKestrelServerOptions UseServer(Type serverType)
         {
             if (serverType != typeof(StandaloneKestrelServer) &&
@@ -42,6 +55,12 @@ namespace StandaloneKestrelServer
             }
 
             _serverType = serverType;
+            return this;
+        }
+
+        internal StandaloneKestrelServerOptions ConfigureKestrel(IConfiguration config, bool reloadOnChange)
+        {
+            KestrelServerOptions.Configure(config, reloadOnChange);
             return this;
         }
     }

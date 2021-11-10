@@ -34,8 +34,6 @@ namespace StandaloneKestrelServer
             _serviceProvider = serviceProvider;
             _logger = loggerFactory.CreateLogger<StandaloneKestrelServerService>();
             _applicationLifetime = applicationLifetime;
-
-            ServerOptions.KestrelServerOptions.ApplicationServices = serviceProvider;
         }
 
 
@@ -83,7 +81,8 @@ namespace StandaloneKestrelServer
             {
                 var server =
                     (StandaloneKestrelServer) ActivatorUtilities.CreateInstance(_serviceProvider,
-                        ServerOptions.ServerType);
+                        ServerOptions.RealServerType);
+                _logger.LogDebug("Using Server: {ServerType}",  ServerOptions.RealServerType.AssemblyQualifiedName);
                 return server;
             }
             catch (Exception e)
