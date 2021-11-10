@@ -17,7 +17,6 @@ namespace SampleServer
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
-                .ConfigureLogging(configureLogging => configureLogging.SetMinimumLevel(LogLevel.Debug))
                 .UseStandaloneKestrelServer(options =>
                 {
                     options.ConfigureRequestPipeline(builder =>
