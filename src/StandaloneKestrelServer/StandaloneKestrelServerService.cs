@@ -24,6 +24,7 @@ namespace StandaloneKestrelServer
 
         private IServiceProvider _serviceProvider;
 
+        private IHostApplicationLifetime _applicationLifetime;
 
         public StandaloneKestrelServerService(IOptions<StandaloneKestrelServerOptions> serverOptions,
             ILoggerFactory loggerFactory,
@@ -33,6 +34,7 @@ namespace StandaloneKestrelServer
             _loggerFactory = loggerFactory;
             _serviceProvider = serviceProvider;
             _logger = loggerFactory.CreateLogger<StandaloneKestrelServerService>();
+            _applicationLifetime = applicationLifetime;
 
             ServerOptions.KestrelServerOptions.ApplicationServices = serviceProvider;
         }
@@ -45,7 +47,8 @@ namespace StandaloneKestrelServer
             Server ??= CreateServer();
             if (Server == null)
             {
-                //TODO: Exit
+               _applicationLifetime.StopApplication();
+               return;
             }
 
             var addresses = GetAddressesOrDefault();
