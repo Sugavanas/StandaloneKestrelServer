@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -47,14 +46,16 @@ namespace StandaloneKestrelServer
             Server ??= CreateServer();
             if (Server == null)
             {
-               _applicationLifetime.StopApplication();
-               return;
+                _applicationLifetime.StopApplication();
+                return;
             }
 
             var addresses = GetAddressesOrDefault();
 
             var applicationBuilder = new ApplicationBuilder(_serviceProvider);
-            ServerOptions.RequestPipeline?.Invoke(applicationBuilder);
+
+            ServerOptions.ConfigureRequestPipeline(GetLastMiddleware());
+            ServerOptions.RequestPipeline.Invoke(applicationBuilder);
 
             var requestPipeline = applicationBuilder.Build();
 
@@ -105,5 +106,8 @@ namespace StandaloneKestrelServer
 
             return addresses;
         }
+
+        protected virtual Action<IApplicationBuilder> GetLastMiddleware() =>
+            builder => builder.Use(_ => _ => Task.CompletedTask);
     }
 }

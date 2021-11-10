@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using StandaloneKestrelServer;
+using StandaloneKestrelServer.Extensions;
 
 namespace SampleServer
 {
@@ -17,20 +18,16 @@ namespace SampleServer
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
                 .ConfigureLogging(configureLogging => configureLogging.SetMinimumLevel(LogLevel.Debug))
-                .ConfigureServices(services =>
+                .UseStandaloneKestrelServer(options =>
                 {
-                    services.AddHostedService<StandaloneKestrelServerService>();
-                    services.Configure<StandaloneKestrelServerOptions>(options =>
+                    options.ConfigureRequestPipeline(builder =>
                     {
-                        options.ConfigureRequestPipeline(builder =>
-                        {
-                            builder.Use(next =>
-                                async context =>
-                                {
-                                    await context.Response.WriteAsync("It Works!");
-                                    await next(context);
-                                });
-                        });
+                        builder.Use(next =>
+                            async context =>
+                            {
+                                await context.Response.WriteAsync("It Works!");
+                                await next(context);
+                            });
                     });
                 });
     }
