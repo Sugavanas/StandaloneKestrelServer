@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Configuration;
 
-namespace StandaloneKestrelServer
+namespace TS.StandaloneKestrelServer
 {
     public class StandaloneKestrelServerOptions
     {

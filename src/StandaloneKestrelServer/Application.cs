@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Logging;
 
-namespace StandaloneKestrelServer
+namespace TS.StandaloneKestrelServer
 {
     public class Application : IHttpApplication<Application.Context>
     {

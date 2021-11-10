@@ -1,7 +1,7 @@
 using System;
 using Microsoft.Extensions.Options;
 
-namespace StandaloneKestrelServer
+namespace TS.StandaloneKestrelServer
 {
     public class StandaloneKestrelServerOptionsSetup : IConfigureOptions<StandaloneKestrelServerOptions>
     {

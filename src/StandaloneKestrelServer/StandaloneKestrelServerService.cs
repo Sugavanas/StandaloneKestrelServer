@@ -9,7 +9,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace StandaloneKestrelServer
+namespace TS.StandaloneKestrelServer
 {
     public class StandaloneKestrelServerService : IHostedService
     {

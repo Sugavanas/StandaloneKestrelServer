@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 
-namespace StandaloneKestrelServer.Extensions
+namespace TS.StandaloneKestrelServer.Extensions
 {
     public static class HostBuilderExtensions
     {
