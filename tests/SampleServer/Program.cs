@@ -22,11 +22,15 @@ namespace SampleServer
                     services.AddHostedService<StandaloneKestrelServerService>();
                     services.Configure<StandaloneKestrelServerOptions>(options =>
                     {
-                        options.RequestPipeline = builder =>
+                        options.ConfigureRequestPipeline(builder =>
                         {
                             builder.Use(next =>
-                                async context => await context.Response.WriteAsync("It Works!"));
-                        };
+                                async context =>
+                                {
+                                    await context.Response.WriteAsync("It Works!");
+                                    await next(context);
+                                });
+                        });
                     });
                 });
     }
