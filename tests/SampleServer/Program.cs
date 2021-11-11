@@ -1,10 +1,6 @@
-﻿using System;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using StandaloneKestrelServer;
-using StandaloneKestrelServer.Extensions;
+using TS.StandaloneKestrelServer.Extensions;
 
 namespace SampleServer
 {
@@ -19,15 +15,33 @@ namespace SampleServer
             Host.CreateDefaultBuilder(args)
                 .UseStandaloneKestrelServer(options =>
                 {
+                    options.KestrelServerOptions.ListenLocalhost(8050);
                     options.ConfigureRequestPipeline(builder =>
                     {
                         builder.Use(next =>
                             async context =>
                             {
-                                await context.Response.WriteAsync("It Works!");
+                                SampleObject x = context.GetPersistentContainer()?.Get<SampleObject>();
+
+                                if (x is null)
+                                {
+                                    x = new SampleObject()
+                                    {
+                                        Count = 0
+                                    };
+                                    context.GetPersistentContainer()?.Set(x);
+                                }
+
+                                x.Count++;
+                                await context.Response.WriteAsync("It Works! Count: " + x.Count);
                                 await next(context);
                             });
                     });
                 });
+    }
+
+    public class SampleObject
+    {
+        public int Count { get; set; }
     }
 }
