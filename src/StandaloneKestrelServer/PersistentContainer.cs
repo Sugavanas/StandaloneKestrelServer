@@ -5,6 +5,10 @@ using Microsoft.AspNetCore.Http.Features;
 
 namespace TS.StandaloneKestrelServer
 {
+    /// <summary>
+    /// Reimplementation of <see cref="Microsoft.AspNetCore.Http.Features.FeatureCollection"/> with some minor changes.
+    /// Licensed under MIT License: https://github.com/dotnet/aspnetcore/blob/main/LICENSE.txt
+    /// </summary>
     public class PersistentContainer : IFeatureCollection
     {
         public bool IsReadOnly => false;
