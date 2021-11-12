@@ -49,9 +49,9 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: StandaloneKestrelServer
-          path: ./StandaloneKestrelServer/bin/Release/*.nupkg
+          path: ./src/StandaloneKestrelServer/bin/Release/*.nupkg
       #Read: https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-nuget-registry, https://stackoverflow.com/questions/57889719/how-to-push-nuget-package-in-github-actions
       - name: Publish to Github Feed
-        run: dotnet nuget push ./StandaloneKestrelServer/bin/Release/*.nupkg -k ${GITHUB_TOKEN} -s https://nuget.pkg.github.com/Sugavanas/index.json --skip-duplicate
+        run: dotnet nuget push ./src/StandaloneKestrelServer/bin/Release/*.nupkg -k ${GITHUB_TOKEN} -s https://nuget.pkg.github.com/Sugavanas/index.json --skip-duplicate
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
