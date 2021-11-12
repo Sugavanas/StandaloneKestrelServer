@@ -1,0 +1,57 @@
+name: Package
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+
+  workflow_dispatch:
+
+jobs:
+  #https://github.community/t/trigger-action-on-schedule-only-if-there-are-changes-to-the-branch/17887/4
+  check_date:
+    runs-on: ubuntu-latest
+    name: Check latest commit
+    outputs:
+      should_run: ${{ steps.should_run.outputs.should_run }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: print latest_commit
+        run: echo ${{ github.sha }}
+
+      - id: should_run
+        continue-on-error: true
+        name: check latest commit is less than a day
+        if: ${{ github.event_name == 'schedule' }}
+        run: test -z $(git rev-list  --after="24 hours"  ${{ github.sha }}) && echo "::set-output name=should_run::false"
+
+  BuildAndPublish:
+    needs: check_date
+    if: ${{ needs.check_date.outputs.should_run != 'false' }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        dotnet-version: [ '5.0.x' ]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup .NET Core SDK ${{ matrix.dotnet-version }}
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+      - name: Install dependencies
+        run: dotnet restore
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+      - name: Test
+        run: dotnet test --no-restore --verbosity normal
+      - name: Pack
+        run: dotnet pack --verbosity normal -c Release --no-restore --include-symbols --version-suffix "ci-$GITHUB_RUN_ID" StandaloneKestrelServer
+      - name: Upload .nupkg
+        uses: actions/upload-artifact@v2
+        with:
+          name: StandaloneKestrelServer
+          path: ./StandaloneKestrelServer/bin/Release/*.nupkg
+      #Read: https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-nuget-registry, https://stackoverflow.com/questions/57889719/how-to-push-nuget-package-in-github-actions
+      - name: Publish to Github Feed
+        run: dotnet nuget push ./StandaloneKestrelServer/bin/Release/*.nupkg -k ${GITHUB_TOKEN} -s https://nuget.pkg.github.com/Sugavanas/index.json --skip-duplicate
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
