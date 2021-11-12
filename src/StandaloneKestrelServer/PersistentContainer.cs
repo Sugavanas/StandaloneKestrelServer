@@ -58,7 +58,9 @@ namespace TS.StandaloneKestrelServer
             return _container.GetEnumerator();
         }
 
+#pragma warning disable 8766
         public TFeature? Get<TFeature>() => (TFeature?) this[typeof(TFeature)];
+#pragma warning restore 8766
 
         public TFeature? Get<TFeature>(out TFeature? result) => result = (TFeature?) this[typeof(TFeature)];
 

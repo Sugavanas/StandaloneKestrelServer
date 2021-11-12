@@ -33,7 +33,14 @@ namespace SampleServer
                                 }
 
                                 x.Count++;
-                                await context.Response.WriteAsync("It Works! Count: " + x.Count);
+                                await next(context);
+                            });
+
+                        builder.Use(next =>
+                            async context =>
+                            {
+                                var x = context.GetPersistentContainer()?.Get<SampleObject>();
+                                await context.Response.WriteAsync("It Works! Count: " + (x?.Count ?? -1));
                                 await next(context);
                             });
                     });
