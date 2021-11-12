@@ -4,6 +4,10 @@
         <TargetFramework>net5.0</TargetFramework>
         <AssemblyName>TS.StandaloneKestrelServer</AssemblyName>
         <RootNamespace>TS.StandaloneKestrelServer</RootNamespace>
+        <Description>.NET Standalone Kestrel Server.</Description>
+        <Authors>Sugavanas</Authors>
+        <VersionPrefix>1.0.0-A</VersionPrefix>
+        <RepositoryUrl>https://github.com/Sugavanas/StandaloneKestrelServer/</RepositoryUrl>
     </PropertyGroup>
 
     <ItemGroup>
