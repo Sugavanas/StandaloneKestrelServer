@@ -9,9 +9,9 @@ namespace TS.StandaloneKestrelServer
     {
         public string Name { get; set; } = "StandaloneKestrelServer";
 
-        public virtual KestrelServerOptions KestrelServerOptions { get; set; } = new KestrelServerOptions();
+        public KestrelServerOptions KestrelServerOptions { get; set; } = new KestrelServerOptions();
 
-        public virtual string ServerType
+        public string ServerType
         {
             get => _serverType.AssemblyQualifiedName;
             set => UseServer(value);
@@ -19,7 +19,7 @@ namespace TS.StandaloneKestrelServer
 
         public Type RealServerType => _serverType;
 
-        public virtual Action<IApplicationBuilder> RequestPipeline { get; set; } = default;
+        public Action<IApplicationBuilder> RequestPipeline { get; set; } = default;
 
         private Type _serverType = typeof(StandaloneKestrelServer);
 
@@ -35,7 +35,7 @@ namespace TS.StandaloneKestrelServer
             return this;
         }
 
-        public virtual StandaloneKestrelServerOptions UseServer(string server)
+        public StandaloneKestrelServerOptions UseServer(string server)
         {
             var type = Type.GetType(server);
 
@@ -45,7 +45,7 @@ namespace TS.StandaloneKestrelServer
             return UseServer(type);
         }
 
-        public virtual StandaloneKestrelServerOptions UseServer(Type serverType)
+        public StandaloneKestrelServerOptions UseServer(Type serverType)
         {
             if (serverType != typeof(StandaloneKestrelServer) &&
                 !serverType.IsSubclassOf(typeof(StandaloneKestrelServer)))
