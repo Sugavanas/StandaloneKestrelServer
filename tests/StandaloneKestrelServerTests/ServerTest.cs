@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using Microsoft.AspNetCore.Connections;
@@ -11,12 +12,32 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using TS.StandaloneKestrelServer;
+using TS.StandaloneKestrelServer.Extensions;
 using Xunit;
 
 namespace StandaloneKestrelServerTests
 {
     public class ServerTest : IDisposable
     {
+        [Fact]
+        public void CheckExtension()
+        {
+            var hostBuilder = Host.CreateDefaultBuilder().UseStandaloneKestrelServer();
+
+            ServiceProvider? serviceProvider = null;
+            hostBuilder.ConfigureServices(services => { serviceProvider = services.BuildServiceProvider(); });
+            hostBuilder.Build();
+
+            Assert.NotNull(serviceProvider);
+
+            var hostedServices = serviceProvider?.GetServices<IHostedService>();
+            Assert.NotNull(hostedServices);
+            Assert.True(hostedServices?.Any(service => service.GetType() == typeof(StandaloneKestrelServerService)));
+            
+            var options = serviceProvider?.GetRequiredService<IOptions<StandaloneKestrelServerOptions>>();
+            Assert.NotNull(options);
+        }
+
         [Fact]
         public void CheckDefaultServerIsNotNull()
         {
