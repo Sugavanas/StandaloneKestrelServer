@@ -80,13 +80,13 @@ namespace StandaloneKestrelServerTests
             Assert.True(addresses?.Contains("http://localhost:1234"));
         }
 
-        private StandaloneKestrelServer GetServer(StandaloneKestrelServerService hostedService)
+        private StandaloneKestrelServer? GetServer(StandaloneKestrelServerService hostedService)
         {
             var property =
                 typeof(StandaloneKestrelServerService).GetProperty("Server",
                     BindingFlags.Instance | BindingFlags.NonPublic);
             var server = property?.GetValue(hostedService);
-            return (StandaloneKestrelServer) server!; //if it's null, doesn't matter.
+            return (StandaloneKestrelServer?) server; //if it's null, doesn't matter.
         }
 
         public void Dispose()
@@ -105,14 +105,18 @@ namespace StandaloneKestrelServerTests
         public HttpTestServerService(Action<StandaloneKestrelServerOptions> configureOptions)
         {
             var serviceCollection = new ServiceCollection();
+            
 
+            serviceCollection.AddTransient<IConfigureOptions<StandaloneKestrelServerOptions>, StandaloneKestrelServerOptionsSetup>();
             serviceCollection.AddOptions<StandaloneKestrelServerOptions>();
             serviceCollection.Configure<StandaloneKestrelServerOptions>(configureOptions);
+            
             serviceCollection.AddSingleton<ILoggerFactory, NullLoggerFactory>();
-            serviceCollection.AddSingleton<ILogger<ApplicationLifetime>, NullLogger<ApplicationLifetime>>();
+            serviceCollection.AddSingleton(typeof(ILogger<>), typeof(NullLogger<>));
             serviceCollection.AddSingleton<IHostApplicationLifetime, ApplicationLifetime>();
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
+            
             HostedService = ActivatorUtilities.CreateInstance<StandaloneKestrelServerService>(serviceProvider);
             HostedService.StartAsync(CancellationToken.None).Wait();
         }
