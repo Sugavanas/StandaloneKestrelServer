@@ -6,7 +6,7 @@
         <RootNamespace>TS.StandaloneKestrelServer</RootNamespace>
         <Description>.NET Standalone Kestrel Server.</Description>
         <Authors>Sugavanas</Authors>
-        <VersionPrefix>1.0.0</VersionPrefix>
+        <VersionPrefix>1.1.0-A</VersionPrefix>
         <RepositoryUrl>https://github.com/Sugavanas/StandaloneKestrelServer/</RepositoryUrl>
     </PropertyGroup>
     
