@@ -68,9 +68,12 @@ namespace TS.StandaloneKestrelServer
             return this;
         }
 
-        internal StandaloneKestrelServerOptions ConfigureKestrel(IConfiguration config, bool reloadOnChange)
+        internal StandaloneKestrelServerOptions ConfigureKestrel(IConfigurationSection? config, bool reloadOnChange)
         {
-            KestrelServerOptions.Configure(config, reloadOnChange);
+            if (config?.Value != null)
+            {
+                KestrelServerOptions.Configure(config, reloadOnChange);
+            }
             return this;
         }
     }

@@ -53,9 +53,9 @@ namespace TS.StandaloneKestrelServer
 
                 if (ServerOptions.ConfigurationLoader?.ReloadOnChange == true)
                 {
-                    var reloadToken = ServerOptions.ConfigurationLoader?.Configuration.GetReloadToken();
+                    var reloadToken = ServerOptions.ConfigurationLoader?.GetReloadToken();
                     reloadToken?.RegisterChangeCallback(
-                        async state => await ((StandaloneKestrelServerService) state).OnConfigurationChange(),
+                        state => ((StandaloneKestrelServerService) state).OnConfigurationChange().GetAwaiter().GetResult(),
                         this
                     );
                 }
@@ -115,7 +115,7 @@ namespace TS.StandaloneKestrelServer
             }
             finally
             {
-                var reloadToken = ServerOptions.ConfigurationLoader?.Configuration.GetReloadToken();
+                var reloadToken = ServerOptions.ConfigurationLoader?.GetReloadToken();
                 reloadToken?.RegisterChangeCallback(
                     async state => await ((StandaloneKestrelServerService) state).OnConfigurationChange(),
                     this
