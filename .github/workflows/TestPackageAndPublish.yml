@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        dotnet-version: [ '5.0.x' ]
+        dotnet-version: [ '5.0.x', '6.0.x' ]
     steps:
       - uses: actions/checkout@v2
       - name: Setup .NET Core SDK ${{ matrix.dotnet-version }}
@@ -44,12 +44,14 @@ jobs:
       - name: Test
         run: dotnet test --no-restore --verbosity normal
       - name: Pack
-        run: dotnet pack --verbosity normal -c Release --no-restore --include-symbols --version-suffix "ci-$GITHUB_RUN_ID" src/StandaloneKestrelServer
+        run: dotnet pack --verbosity normal -c Release --no-restore --include-symbols --version-suffix "ci-$GITHUB_RUN_ID" -p:SymbolPackageFormat=snupkg src/StandaloneKestrelServer
       - name: Upload .nupkg
         uses: actions/upload-artifact@v2
         with:
           name: StandaloneKestrelServer
-          path: ./src/StandaloneKestrelServer/bin/Release/*.nupkg
+          path: |
+            ./src/StandaloneKestrelServer/bin/Release/*.nupkg
+            ./src/StandaloneKestrelServer/bin/Release/*.snupkg
       #Read: https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-nuget-registry, https://stackoverflow.com/questions/57889719/how-to-push-nuget-package-in-github-actions
       - name: Publish to Github Feed
         run: dotnet nuget push ./src/StandaloneKestrelServer/bin/Release/*.nupkg -k ${GITHUB_TOKEN} -s https://nuget.pkg.github.com/Sugavanas/index.json --skip-duplicate
