@@ -9,11 +9,14 @@ namespace TS.StandaloneKestrelServer
     {
         public string Name { get; set; } = "StandaloneKestrelServer";
 
-        public KestrelServerOptions KestrelServerOptions { get; set; } = new KestrelServerOptions();
+        public KestrelServerOptions KestrelServerOptions { get; set; } = new();
+
+        public StandaloneKestrelServerConfigurationLoader? ConfigurationLoader { get; protected set; }
 
         public string ServerType
         {
-            get => _serverType.AssemblyQualifiedName;
+            get => _serverType.AssemblyQualifiedName ??
+                   throw new Exception("Unexpected error while trying to get ServerType");
             set => UseServer(value);
         }
 
@@ -55,6 +58,13 @@ namespace TS.StandaloneKestrelServer
             }
 
             _serverType = serverType;
+            return this;
+        }
+
+        public StandaloneKestrelServerOptions Configure(IConfiguration configuration, bool reloadOnChange)
+        {
+            ConfigurationLoader = new StandaloneKestrelServerConfigurationLoader(configuration, reloadOnChange);
+            ConfigureKestrel(configuration.GetSection("Kestrel"), reloadOnChange);
             return this;
         }
 
