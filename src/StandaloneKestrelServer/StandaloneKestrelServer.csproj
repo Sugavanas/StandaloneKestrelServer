@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net5.0</TargetFramework>
+        <TargetFrameworks>net5.0;net6.0</TargetFrameworks>
         <AssemblyName>TS.StandaloneKestrelServer</AssemblyName>
         <RootNamespace>TS.StandaloneKestrelServer</RootNamespace>
         <Description>.NET Standalone Kestrel Server.</Description>
@@ -11,7 +11,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <FrameworkReference Include="Microsoft.AspNetCore.App" Version="5.0.0" />
+        <FrameworkReference Include="Microsoft.AspNetCore.App" Version="6.0.0" />
     </ItemGroup>
 
 </Project>
