@@ -26,30 +26,34 @@ namespace TS.StandaloneKestrelServer
 
         public Context CreateContext(IFeatureCollection contextFeatures)
         {
-            Context context;
+            Context? context;
             //Refer to AspNet Core Application class.
-            if (contextFeatures is IHostContextContainer<Application.Context> container)
+            if (contextFeatures is IHostContextContainer<Context> container)
             {
                 context = container.HostContext;
                 if (context is null)
                 {
-                    context = new Application.Context();
+                    var httpContext = new DefaultHttpContext(contextFeatures);
+                    context = new Context(httpContext);
                     container.HostContext = context;
+                }
+                else
+                {
+                    if (context.HttpContext is DefaultHttpContext httpContext)
+                    {
+                        httpContext.Initialize(contextFeatures);
+                    }
+                    else
+                    {
+                        context.HttpContext = new DefaultHttpContext(contextFeatures);
+                    }
                 }
             }
             else
             {
-                context = new Application.Context();
+                var httpContext = new DefaultHttpContext(contextFeatures);
+                context = new Context(httpContext);
             }
-
-            DefaultHttpContext httpContext = (DefaultHttpContext) context.HttpContext;
-
-            if (httpContext is null)
-                context.HttpContext = new DefaultHttpContext(contextFeatures);
-            else
-                httpContext.Initialize(contextFeatures);
-
-            context.Container ??= new PersistentContainer();
 
             context.HttpContext.Features.Set(context.Container);
             return context;
@@ -62,7 +66,7 @@ namespace TS.StandaloneKestrelServer
             _logger.LogDebug("ProcessRequestAsync: Done");
         }
 
-        public void DisposeContext(Context context, Exception exception)
+        public void DisposeContext(Context context, Exception? exception)
         {
             ((DefaultHttpContext) context.HttpContext).Uninitialize();
         }
@@ -71,7 +75,12 @@ namespace TS.StandaloneKestrelServer
         {
             public HttpContext HttpContext { get; set; }
 
-            public PersistentContainer Container { get; set; }
+            public PersistentContainer Container { get; } = new();
+
+            public Context(HttpContext httpContext)
+            {
+                HttpContext = httpContext;
+            }
         }
     }
 }
