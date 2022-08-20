@@ -65,7 +65,15 @@ namespace TS.StandaloneKestrelServer
             }
             else
             {
-                var httpContext = new DefaultHttpContext(contextFeatures);
+                HttpContext httpContext;
+                if (_httpContextFactory is not null)
+                {
+                    httpContext = _httpContextFactory.Create(contextFeatures);
+                }
+                else
+                {
+                    httpContext = new DefaultHttpContext(contextFeatures);
+                }
                 context = new Context(httpContext);
             }
 
