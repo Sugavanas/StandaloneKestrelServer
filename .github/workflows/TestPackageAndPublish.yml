@@ -4,8 +4,19 @@ on:
   schedule:
     - cron: "0 0 * * *"
 
-  workflow_dispatch: ['dev']
-
+  workflow_dispatch: 
+    inputs:
+      BRANCH:
+        description: 'Branch'
+        default: 'dev'
+        required: true
+        type: string
+      VERSION_SUFFIX:
+        description: 'Version suffix (github run id will be added to end automatically)'
+        required: false
+        type: string
+        default: 'ci'
+        
 jobs:
   #https://github.community/t/trigger-action-on-schedule-only-if-there-are-changes-to-the-branch/17887/4
   check_date:
@@ -16,7 +27,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          ref: dev
+          ref: ${{ inputs.BRANCH }}
       - name: print latest_commit
         run: echo ${{ github.sha }}
 
@@ -33,7 +44,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          ref: dev
+          ref: ${{ inputs.BRANCH }}
       - name: Setup .NET Core SDK ${{ matrix.dotnet-version }}
         uses: actions/setup-dotnet@v1
         with:
@@ -47,7 +58,7 @@ jobs:
       - name: Test
         run: dotnet test --no-restore --verbosity normal
       - name: Pack
-        run: dotnet pack --verbosity normal -c Release --no-restore --include-symbols --version-suffix "ci-$GITHUB_RUN_ID" -p:SymbolPackageFormat=snupkg src/StandaloneKestrelServer
+        run: dotnet pack --verbosity normal -c Release --no-restore --include-symbols --version-suffix "$inputs.VERSION_SUFFIX-$GITHUB_RUN_ID" -p:SymbolPackageFormat=snupkg src/StandaloneKestrelServer
       - name: Upload .nupkg
         uses: actions/upload-artifact@v2
         with:
