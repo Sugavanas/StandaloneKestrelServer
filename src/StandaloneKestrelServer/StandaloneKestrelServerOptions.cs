@@ -9,17 +9,20 @@ namespace TS.StandaloneKestrelServer
     {
         public string Name { get; set; } = "StandaloneKestrelServer";
 
-        public KestrelServerOptions KestrelServerOptions { get; set; } = new KestrelServerOptions();
+        public KestrelServerOptions KestrelServerOptions { get; set; } = new();
+
+        public StandaloneKestrelServerConfigurationLoader? ConfigurationLoader { get; protected set; }
 
         public string ServerType
         {
-            get => _serverType.AssemblyQualifiedName;
+            get => _serverType.AssemblyQualifiedName ??
+                   throw new Exception("Unexpected error while trying to get ServerType");
             set => UseServer(value);
         }
 
         public Type RealServerType => _serverType;
 
-        public Action<IApplicationBuilder> RequestPipeline { get; set; } = default;
+        public Action<IApplicationBuilder>? RequestPipeline { get; set; }
 
         private Type _serverType = typeof(StandaloneKestrelServer);
 
@@ -58,9 +61,20 @@ namespace TS.StandaloneKestrelServer
             return this;
         }
 
-        internal StandaloneKestrelServerOptions ConfigureKestrel(IConfiguration config, bool reloadOnChange)
+        public StandaloneKestrelServerOptions Configure(IConfiguration configuration, bool reloadOnChange)
         {
-            KestrelServerOptions.Configure(config, reloadOnChange);
+            ConfigurationLoader = new StandaloneKestrelServerConfigurationLoader(configuration, reloadOnChange);
+            ConfigureKestrel(configuration.GetSection("Kestrel"), reloadOnChange);
+            return this;
+        }
+
+        internal StandaloneKestrelServerOptions ConfigureKestrel(IConfigurationSection? config, bool reloadOnChange)
+        {
+            if (config?.Value != null)
+            {
+                KestrelServerOptions.Configure(config, reloadOnChange);
+            }
+
             return this;
         }
     }

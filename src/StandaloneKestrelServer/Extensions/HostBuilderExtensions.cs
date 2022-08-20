@@ -13,12 +13,14 @@ namespace TS.StandaloneKestrelServer.Extensions
             {
                 service.AddOptions<StandaloneKestrelServerOptions>();
                 service.AddHostedService<StandaloneKestrelServerService>();
-                service.AddTransient<IConfigureOptions<StandaloneKestrelServerOptions>, StandaloneKestrelServerOptionsSetup>();
+                service
+                    .AddTransient<IConfigureOptions<StandaloneKestrelServerOptions>,
+                        StandaloneKestrelServerOptionsSetup>();
                 service.Configure<StandaloneKestrelServerOptions>(
                     context.Configuration.GetSection("StandaloneKestrel"));
                 service.Configure((StandaloneKestrelServerOptions options) =>
-                    options.ConfigureKestrel(
-                        context.Configuration.GetSection("StandaloneKestrel").GetSection("Kestrel"),
+                    options.Configure(
+                        context.Configuration.GetSection("StandaloneKestrel"),
                         true));
             });
         }

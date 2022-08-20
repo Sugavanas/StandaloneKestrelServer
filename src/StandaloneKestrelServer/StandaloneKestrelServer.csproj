@@ -6,12 +6,16 @@
         <RootNamespace>TS.StandaloneKestrelServer</RootNamespace>
         <Description>.NET Standalone Kestrel Server.</Description>
         <Authors>Sugavanas</Authors>
-        <VersionPrefix>1.0.0</VersionPrefix>
+        <VersionPrefix>1.1.0</VersionPrefix>
         <RepositoryUrl>https://github.com/Sugavanas/StandaloneKestrelServer/</RepositoryUrl>
     </PropertyGroup>
-
+    
+    <PropertyGroup>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+    
     <ItemGroup>
-        <FrameworkReference Include="Microsoft.AspNetCore.App" Version="6.0.0" />
+        <FrameworkReference Include="Microsoft.AspNetCore.App" Version="6.0.0"/>
     </ItemGroup>
 
 </Project>
