@@ -4,7 +4,7 @@ on:
   schedule:
     - cron: "0 0 * * *"
 
-  workflow_dispatch:
+  workflow_dispatch: ['dev']
 
 jobs:
   #https://github.community/t/trigger-action-on-schedule-only-if-there-are-changes-to-the-branch/17887/4
@@ -15,6 +15,8 @@ jobs:
       should_run: ${{ steps.should_run.outputs.should_run }}
     steps:
       - uses: actions/checkout@v2
+        with:
+          ref: dev
       - name: print latest_commit
         run: echo ${{ github.sha }}
 
@@ -30,6 +32,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+        with:
+          ref: dev
       - name: Setup .NET Core SDK ${{ matrix.dotnet-version }}
         uses: actions/setup-dotnet@v1
         with:
