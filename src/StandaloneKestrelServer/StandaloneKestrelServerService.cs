@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting.Server.Features;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -55,7 +56,8 @@ namespace TS.StandaloneKestrelServer
                 {
                     var reloadToken = ServerOptions.ConfigurationLoader?.GetReloadToken();
                     reloadToken?.RegisterChangeCallback(
-                        state => ((StandaloneKestrelServerService) state).OnConfigurationChange().GetAwaiter().GetResult(),
+                        state => ((StandaloneKestrelServerService) state).OnConfigurationChange().GetAwaiter()
+                            .GetResult(),
                         this
                     );
                 }
@@ -189,8 +191,10 @@ namespace TS.StandaloneKestrelServer
             ServerOptions.RequestPipeline?.Invoke(applicationBuilder);
 
             var requestPipeline = applicationBuilder.Build();
+            var httpContextFactory = _serviceProvider.GetService<IHttpContextFactory>() ??
+                                     new DefaultHttpContextFactory(_serviceProvider);
 
-            _application = new Application(requestPipeline, _loggerFactory);
+            _application = new Application(requestPipeline, _loggerFactory, httpContextFactory);
             return _application;
         }
 

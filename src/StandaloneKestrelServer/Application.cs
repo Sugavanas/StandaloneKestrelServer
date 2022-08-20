@@ -18,10 +18,14 @@ namespace TS.StandaloneKestrelServer
 
         private readonly ILogger _logger;
 
-        public Application(RequestDelegate requestPipeline, ILoggerFactory loggerFactory)
+        private readonly IHttpContextFactory? _httpContextFactory;
+
+        public Application(RequestDelegate requestPipeline, ILoggerFactory loggerFactory,
+            IHttpContextFactory httpContextFactory)
         {
             _requestPipeline = requestPipeline;
             _logger = loggerFactory.CreateLogger<Application>();
+            _httpContextFactory = httpContextFactory;
         }
 
         public Context CreateContext(IFeatureCollection contextFeatures)
@@ -31,9 +35,19 @@ namespace TS.StandaloneKestrelServer
             if (contextFeatures is IHostContextContainer<Context> container)
             {
                 context = container.HostContext;
+                // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
                 if (context is null)
                 {
-                    var httpContext = new DefaultHttpContext(contextFeatures);
+                    HttpContext httpContext;
+                    if (_httpContextFactory is not null)
+                    {
+                        httpContext = _httpContextFactory.Create(contextFeatures);
+                    }
+                    else
+                    {
+                        httpContext = new DefaultHttpContext(contextFeatures);
+                    }
+
                     context = new Context(httpContext);
                     container.HostContext = context;
                 }
@@ -55,7 +69,7 @@ namespace TS.StandaloneKestrelServer
                 context = new Context(httpContext);
             }
 
-            context.HttpContext.Features.Set(context.Container);
+            context.HttpContext.Features.Set<PersistentContainer>(context.Container);
             return context;
         }
 
@@ -68,7 +82,11 @@ namespace TS.StandaloneKestrelServer
 
         public void DisposeContext(Context context, Exception? exception)
         {
-            ((DefaultHttpContext) context.HttpContext).Uninitialize();
+            _httpContextFactory?.Dispose(context.HttpContext);
+            if (context.HttpContext is DefaultHttpContext defaultHttpContext)
+            {
+                defaultHttpContext.Uninitialize();
+            }
         }
 
         public class Context
