@@ -166,7 +166,7 @@ namespace TS.StandaloneKestrelServer
 
         protected ICollection<string>? GetAddressesOrDefault()
         {
-            var serverAddressesFeature = Server.Features?.Get<IServerAddressesFeature>();
+            var serverAddressesFeature = Server?.Features?.Get<IServerAddressesFeature>();
             var addresses = serverAddressesFeature?.Addresses;
             if (addresses is {IsReadOnly: false, Count: 0})
             {
@@ -186,7 +186,7 @@ namespace TS.StandaloneKestrelServer
             var applicationBuilder = new ApplicationBuilder(_serviceProvider);
 
             ServerOptions.ConfigureRequestPipeline(GetLastMiddleware());
-            ServerOptions.RequestPipeline.Invoke(applicationBuilder);
+            ServerOptions.RequestPipeline?.Invoke(applicationBuilder);
 
             var requestPipeline = applicationBuilder.Build();
 

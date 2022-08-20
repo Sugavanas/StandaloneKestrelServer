@@ -55,7 +55,7 @@ namespace StandaloneKestrelServerTests
         public void CheckCustomServerTypeWhenUsingString()
         {
             using var service = new HttpTestServerService(options =>
-                options.UseServer(typeof(HttpTestServer).AssemblyQualifiedName));
+                options.UseServer(typeof(HttpTestServer).AssemblyQualifiedName!));
             var server = GetServer(service.HostedService);
             Assert.NotNull(server);
             Assert.IsType<HttpTestServer>(server);
@@ -99,7 +99,7 @@ namespace StandaloneKestrelServerTests
 
             using var service = new HttpTestServerService(options =>
             {
-                options.UseServer(typeof(HttpTestServer).AssemblyQualifiedName);
+                options.UseServer(typeof(HttpTestServer).AssemblyQualifiedName!);
                 options.Configure(configurationMock.Object, true);
             });
             var server = GetServer(service.HostedService);

@@ -22,7 +22,7 @@ namespace TS.StandaloneKestrelServer
 
         public Type RealServerType => _serverType;
 
-        public Action<IApplicationBuilder> RequestPipeline { get; set; } = default;
+        public Action<IApplicationBuilder>? RequestPipeline { get; set; }
 
         private Type _serverType = typeof(StandaloneKestrelServer);
 
@@ -74,6 +74,7 @@ namespace TS.StandaloneKestrelServer
             {
                 KestrelServerOptions.Configure(config, reloadOnChange);
             }
+
             return this;
         }
     }

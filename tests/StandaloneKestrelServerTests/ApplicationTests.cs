@@ -50,7 +50,7 @@ namespace StandaloneKestrelServerTests
             Assert.Equal(featureCollection, context.HttpContext.Features);
             Assert.Equal(context, featureCollection.HostContext);
         }
-        
+
         [Fact]
         public void TestCreateContextStoresPersistentContainerInHttpContext()
         {
@@ -62,7 +62,7 @@ namespace StandaloneKestrelServerTests
             Assert.NotNull(context);
             Assert.NotNull(context.HttpContext);
             Assert.NotNull(context.Container);
-         
+
             Assert.Equal(featureCollection, context.HttpContext.Features);
             Assert.Equal(context.Container, featureCollection.Get<PersistentContainer>());
         }
@@ -71,37 +71,37 @@ namespace StandaloneKestrelServerTests
         public void TestCreateContextReusesContextFromHostContextContainer()
         {
             var application = new Application((_) => Task.CompletedTask, new NullLoggerFactory());
-            
+
             var featureCollection = new FeatureCollectionWithHostContextContainer();
 
             var context = application.CreateContext(featureCollection);
 
             Assert.NotNull(context);
-            
+
             var context2 = application.CreateContext(featureCollection);
-            
+
             Assert.Equal(context, context2);
             //TODO: test if initialize was called
         }
-        
+
         [Fact]
         public async Task TestProcessRequestAsync()
         {
             RequestDelegate requestDelegate = httpContext =>
             {
-                httpContext.Features.Get<PersistentContainer>().Set<string>("Test");
+                httpContext.Features.Get<PersistentContainer>()?.Set<string>("Test");
                 return Task.CompletedTask;
             };
-            
+
             var application = new Application(requestDelegate, new NullLoggerFactory());
             var context = application.CreateContext(new FeatureCollection());
-            
+
             await application.ProcessRequestAsync(context);
-            
+
             Assert.Equal("Test", context.Container.Get<string>());
         }
-        
-        
+
+
         [Fact]
         public async Task TestHttpContextExtensionGetPersistentContainer()
         {
@@ -111,12 +111,12 @@ namespace StandaloneKestrelServerTests
                 httpContext.GetPersistentContainer()?.Set<string>("Test");
                 return Task.CompletedTask;
             };
-            
+
             var application = new Application(requestDelegate, new NullLoggerFactory());
             var context = application.CreateContext(new FeatureCollection());
 
             await application.ProcessRequestAsync(context);
-            
+
             Assert.Equal("Test", context.Container.Get<string>());
         }
 
@@ -130,7 +130,9 @@ namespace StandaloneKestrelServerTests
                 set => _featureCollection[key] = value;
             }
 
-            public Application.Context HostContext { get; set; } = null!;
+#pragma warning disable CS8766 //net5.0
+            public Application.Context? HostContext { get; set; } = null;
+#pragma warning restore CS8766
 
             public bool IsReadOnly => false;
 
@@ -138,12 +140,14 @@ namespace StandaloneKestrelServerTests
 
             private readonly IFeatureCollection _featureCollection = new FeatureCollection();
 
-            public TFeature Get<TFeature>()
+#pragma warning disable CS8766 //net 5.0
+            public TFeature? Get<TFeature>()
             {
                 return _featureCollection.Get<TFeature>();
             }
-
-            public void Set<TFeature>(TFeature instance)
+#pragma warning restore CS8766
+            
+            public void Set<TFeature>(TFeature? instance)
             {
                 _featureCollection.Set(instance);
             }

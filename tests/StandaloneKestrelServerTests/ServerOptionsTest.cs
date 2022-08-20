@@ -59,7 +59,7 @@ namespace StandaloneKestrelServerTests
         public void UseServerTypeCheck()
         {
             var httpServerOptions = new StandaloneKestrelServerOptions();
-            httpServerOptions.UseServer(typeof(HttpTestServer).AssemblyQualifiedName);
+            httpServerOptions.UseServer(typeof(HttpTestServer).AssemblyQualifiedName!);
             Assert.True(httpServerOptions.RealServerType == typeof(HttpTestServer));
             Assert.True(httpServerOptions.ServerType == typeof(HttpTestServer).AssemblyQualifiedName);
         }
@@ -77,12 +77,12 @@ namespace StandaloneKestrelServerTests
         public void UseServerTypeInvalidCheck()
         {
             var httpServerOptions = new StandaloneKestrelServerOptions();
-            Assert.Throws<Exception>(() => httpServerOptions.UseServer(typeof(InvalidHttpTestServer).AssemblyQualifiedName));
+            Assert.Throws<Exception>(() => httpServerOptions.UseServer(typeof(InvalidHttpTestServer).AssemblyQualifiedName!));
         }
         
         internal class InvalidHttpTestServer : IServer
         {
-            public IFeatureCollection Features { get; }
+            public IFeatureCollection Features { get; } = new FeatureCollection();
         
             public Task StartAsync<TContext>(IHttpApplication<TContext> application, CancellationToken cancellationToken) where TContext : notnull
             {
