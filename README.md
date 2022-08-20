@@ -1,7 +1,11 @@
 # Standalone Kestrel Server 
 
-![dotnet](https://img.shields.io/badge/dotnet-5.0-blue) 
+![dotnet](https://img.shields.io/badge/dotnet-6.0-blue)
+![dotnet](https://img.shields.io/badge/dotnet-5.0-yellow)
 [![HttpServerTests](https://img.shields.io/github/workflow/status/Sugavanas/StandaloneKestrelServer/HttpServerTests?label=Tests)](https://github.com/Sugavanas/StandaloneKestrelServer/actions/workflows/ServerTests.yml)
+![latest](https://img.shields.io/github/v/release/Sugavanas/StandaloneKestrelServer)
+![latest-pre](https://img.shields.io/github/v/release/Sugavanas/StandaloneKestrelServer?color=yellow&include_prereleases)
+
 
 ## Usage
 
