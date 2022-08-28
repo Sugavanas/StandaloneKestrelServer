@@ -15,16 +15,23 @@ namespace TS.StandaloneKestrelServer
 
         public string ServerType
         {
-            get => _serverType.AssemblyQualifiedName ??
-                   throw new Exception("Unexpected error while trying to get ServerType");
+            get => RealServerType.AssemblyQualifiedName ??
+                   throw new Exception("Unexpected error while trying to get " + nameof(ServerType));
             set => UseServer(value);
         }
 
-        public Type RealServerType => _serverType;
+        public Type RealServerType { get; protected set; } = typeof(StandaloneKestrelServer);
+
+        public string ApplicationType
+        {
+            get => RealApplicationType.AssemblyQualifiedName ??
+                   throw new Exception("Unexpected error while trying to get " + nameof(ApplicationType));
+            set => UseApplication(value);
+        }
+
+        public Type RealApplicationType { get; protected set; } = typeof(Application);
 
         public Action<IApplicationBuilder>? RequestPipeline { get; set; }
-
-        private Type _serverType = typeof(StandaloneKestrelServer);
 
         public StandaloneKestrelServerOptions ConfigureKestrel(Action<KestrelServerOptions> options)
         {
@@ -43,7 +50,7 @@ namespace TS.StandaloneKestrelServer
             var type = Type.GetType(server);
 
             if (type == null)
-                throw new Exception($"{server} was not found.");
+                throw new Exception($"{server} type was not found.");
 
             return UseServer(type);
         }
@@ -57,7 +64,30 @@ namespace TS.StandaloneKestrelServer
                     $"{serverType.FullName} needs to extend from {typeof(StandaloneKestrelServer).FullName}");
             }
 
-            _serverType = serverType;
+            RealServerType = serverType;
+            return this;
+        }
+
+        public StandaloneKestrelServerOptions UseApplication(string application)
+        {
+            var type = Type.GetType(application);
+
+            if (type == null)
+                throw new Exception($"{application} type was not found.");
+
+            return UseApplication(type);
+        }
+
+        public StandaloneKestrelServerOptions UseApplication(Type applicationType)
+        {
+            if (applicationType != typeof(Application) &&
+                !applicationType.IsSubclassOf(typeof(Application)))
+            {
+                throw new Exception(
+                    $"{applicationType.FullName} needs to extend from {typeof(Application).FullName}");
+            }
+
+            RealApplicationType = applicationType;
             return this;
         }
 

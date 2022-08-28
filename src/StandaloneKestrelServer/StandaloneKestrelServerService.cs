@@ -28,6 +28,8 @@ namespace TS.StandaloneKestrelServer
 
         private Application? _application = null;
 
+        private RequestDelegate? _requestPipeline = null;
+
         private bool _stopping = false;
 
         private SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1, 1);
@@ -56,8 +58,7 @@ namespace TS.StandaloneKestrelServer
                 {
                     var reloadToken = ServerOptions.ConfigurationLoader?.GetReloadToken();
                     reloadToken?.RegisterChangeCallback(
-                        state => ((StandaloneKestrelServerService) state).OnConfigurationChange().GetAwaiter()
-                            .GetResult(),
+                        state => ((StandaloneKestrelServerService) state).OnConfigurationChangeAsync(),
                         this
                     );
                 }
@@ -83,7 +84,7 @@ namespace TS.StandaloneKestrelServer
             }
         }
 
-        protected virtual async Task OnConfigurationChange()
+        protected virtual async Task OnConfigurationChangeAsync()
         {
             await _semaphoreSlim.WaitAsync();
             try
@@ -119,7 +120,7 @@ namespace TS.StandaloneKestrelServer
             {
                 var reloadToken = ServerOptions.ConfigurationLoader?.GetReloadToken();
                 reloadToken?.RegisterChangeCallback(
-                    async state => await ((StandaloneKestrelServerService) state).OnConfigurationChange(),
+                    async state => await ((StandaloneKestrelServerService) state).OnConfigurationChangeAsync(),
                     this
                 );
                 _semaphoreSlim.Release();
@@ -180,21 +181,50 @@ namespace TS.StandaloneKestrelServer
             return addresses;
         }
 
-        protected virtual Application GetApplication()
+        protected virtual RequestDelegate BuildRequestPipeline()
         {
-            if (_application != null)
-                return _application;
+            if (_requestPipeline != null)
+                return _requestPipeline;
 
             var applicationBuilder = new ApplicationBuilder(_serviceProvider);
 
             ServerOptions.ConfigureRequestPipeline(GetLastMiddleware());
             ServerOptions.RequestPipeline?.Invoke(applicationBuilder);
 
-            var requestPipeline = applicationBuilder.Build();
+            _requestPipeline = applicationBuilder.Build();
+            return _requestPipeline;
+        }
+
+        protected virtual Application GetApplication()
+        {
+            if (_application != null)
+                return _application;
+
+            var requestPipeline = BuildRequestPipeline();
             var httpContextFactory = _serviceProvider.GetService<IHttpContextFactory>() ??
                                      new DefaultHttpContextFactory(_serviceProvider);
 
-            _application = new Application(requestPipeline, _loggerFactory, httpContextFactory);
+            var applicationType = ServerOptions.RealApplicationType;
+
+            _logger.LogDebug("Using Application Type: {ApplicationType}", applicationType.AssemblyQualifiedName);
+            
+            if (applicationType == typeof(Application))
+            {
+                _application = new Application(requestPipeline, _loggerFactory, httpContextFactory);
+                return _application;
+            }
+            
+       
+
+            var ctorArgs = new object[] {requestPipeline, httpContextFactory};
+            var application = ActivatorUtilities.CreateInstance(_serviceProvider, applicationType, ctorArgs);
+
+            if (application is null or not Application)
+            {
+                throw new Exception("Unexpected error while creating application.");
+            }
+
+            _application = (Application) application;
             return _application;
         }
 

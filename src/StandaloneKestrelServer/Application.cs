@@ -28,7 +28,7 @@ namespace TS.StandaloneKestrelServer
             _httpContextFactory = httpContextFactory;
         }
 
-        public Context CreateContext(IFeatureCollection contextFeatures)
+        public virtual Context CreateContext(IFeatureCollection contextFeatures)
         {
             Context? context;
             //Refer to AspNet Core Application class.
@@ -81,14 +81,14 @@ namespace TS.StandaloneKestrelServer
             return context;
         }
 
-        public async Task ProcessRequestAsync(Context context)
+        public virtual async Task ProcessRequestAsync(Context context)
         {
             _logger.LogDebug("ProcessRequestAsync: Started");
             await _requestPipeline(context.HttpContext);
             _logger.LogDebug("ProcessRequestAsync: Done");
         }
 
-        public void DisposeContext(Context context, Exception? exception)
+        public virtual void DisposeContext(Context context, Exception? exception)
         {
             _httpContextFactory?.Dispose(context.HttpContext);
             if (context.HttpContext is DefaultHttpContext defaultHttpContext)
@@ -100,7 +100,7 @@ namespace TS.StandaloneKestrelServer
         public class Context
         {
             public HttpContext HttpContext { get; set; }
-
+            
             public PersistentContainer Container { get; } = new();
 
             public Context(HttpContext httpContext)
