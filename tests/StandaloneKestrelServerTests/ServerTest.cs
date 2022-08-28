@@ -2,8 +2,10 @@ using System;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Connections;
 using Microsoft.AspNetCore.Hosting.Server.Features;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,7 +22,7 @@ using Xunit;
 
 namespace StandaloneKestrelServerTests
 {
-    public class ServerTest : IDisposable
+    public class ServerTest
     {
         [Fact]
         public void CheckExtension()
@@ -50,7 +52,6 @@ namespace StandaloneKestrelServerTests
             Assert.IsType<StandaloneKestrelServer>(server);
         }
 
-
         [Fact]
         public void CheckCustomServerTypeWhenUsingString()
         {
@@ -73,11 +74,11 @@ namespace StandaloneKestrelServerTests
             Assert.IsAssignableFrom<StandaloneKestrelServer>(server);
         }
 
-
         [Fact]
-        public void CheckServerTypeChangeOnConfigurationReload()
+        public async Task CheckServerTypeChangeOnConfigurationReload()
         {
             var serverTypeMock = new Mock<IConfigurationSection>();
+            var applicationTypeMock = new Mock<IConfigurationSection>();
             var configurationMock = new Mock<IConfigurationSection>();
             var reloadTokenMock = new Mock<IChangeToken>();
 
@@ -86,6 +87,7 @@ namespace StandaloneKestrelServerTests
             int called = 0;
 
             serverTypeMock.SetupGet(c => c.Value).Returns(typeof(HttpTestServer).AssemblyQualifiedName ?? "");
+            applicationTypeMock.SetupGet(c => c.Value).Returns(typeof(Application).AssemblyQualifiedName ?? "");
             reloadTokenMock.Setup(c => c.RegisterChangeCallback(It.IsAny<Action<object>>(), It.IsAny<object>()))
                 .Callback<Action<object>, object>((action, o) =>
                 {
@@ -95,6 +97,7 @@ namespace StandaloneKestrelServerTests
                 });
 
             configurationMock.Setup(c => c.GetSection("ServerType")).Returns(serverTypeMock.Object);
+            configurationMock.Setup(c => c.GetSection("ApplicationType")).Returns(applicationTypeMock.Object);
             configurationMock.Setup(c => c.GetReloadToken()).Returns(reloadTokenMock.Object);
 
             using var service = new HttpTestServerService(options =>
@@ -115,6 +118,16 @@ namespace StandaloneKestrelServerTests
 
             callback(callbackObject);
 
+            // The configuration is reloaded asynchronously 
+            var task = Task.Run(async () =>
+            {
+                while (called != 2)
+                {
+                    await Task.Delay(500);
+                }
+            });
+            await task.WaitAsync(TimeSpan.FromMinutes(1));
+
             server = GetServer(service.HostedService);
 
             Assert.Equal(2, called);
@@ -125,6 +138,15 @@ namespace StandaloneKestrelServerTests
 
             callback(callbackObject);
 
+            // The configuration is reloaded asynchronously  
+            task = Task.Run(async () =>
+            {
+                while (called != 2)
+                {
+                    await Task.Delay(500);
+                }
+            });
+            await task.WaitAsync(TimeSpan.FromMinutes(1));
             server = GetServer(service.HostedService);
 
             Assert.NotNull(server);
@@ -141,6 +163,17 @@ namespace StandaloneKestrelServerTests
             Assert.True(addresses?.Contains("http://localhost:1234"));
         }
 
+        [Fact]
+        public void CheckCustomApplicationTypeWhenUsingType()
+        {
+            using var service = new HttpTestServerService(options =>
+                options.UseApplication(typeof(TestApplication)));
+            var application = GetApplication(service.HostedService);
+            Assert.NotNull(application);
+            Assert.IsType<TestApplication>(application);
+            Assert.IsAssignableFrom<Application>(application);
+        }
+
         private StandaloneKestrelServer? GetServer(StandaloneKestrelServerService hostedService)
         {
             var property =
@@ -150,8 +183,13 @@ namespace StandaloneKestrelServerTests
             return (StandaloneKestrelServer?) server; //if it's null, doesn't matter.
         }
 
-        public void Dispose()
+        private Application? GetApplication(StandaloneKestrelServerService hostedService)
         {
+            var field =
+                typeof(StandaloneKestrelServerService).GetField("_application",
+                    BindingFlags.Instance | BindingFlags.NonPublic);
+            var application = field?.GetValue(hostedService);
+            return (Application?) application;
         }
     }
 
@@ -198,6 +236,15 @@ namespace StandaloneKestrelServerTests
 
         public HttpTestServer(IOptions<KestrelServerOptions> options, IConnectionListenerFactory transportFactory,
             ILoggerFactory loggerFactory) : base(options, transportFactory, loggerFactory)
+        {
+        }
+    }
+
+    internal class TestApplication : Application
+    {
+        public TestApplication(RequestDelegate requestPipeline, ILoggerFactory loggerFactory,
+            IHttpContextFactory httpContextFactory, IServiceProvider serviceProvider) : base(requestPipeline,
+            loggerFactory, httpContextFactory)
         {
         }
     }
