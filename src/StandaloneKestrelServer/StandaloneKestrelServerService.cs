@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Primitives;
 
 namespace TS.StandaloneKestrelServer
 {
@@ -24,27 +25,22 @@ namespace TS.StandaloneKestrelServer
 
         private readonly IServiceProvider _serviceProvider;
 
-        private IHostApplicationLifetime _applicationLifetime;
-
         private Application? _application = null;
 
         private RequestDelegate? _requestPipeline = null;
 
         private bool _stopping = false;
 
-        private SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1, 1);
+        private readonly SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1, 1);
 
         public StandaloneKestrelServerService(IOptions<StandaloneKestrelServerOptions> serverOptions,
-            ILoggerFactory loggerFactory,
-            IServiceProvider serviceProvider, IHostApplicationLifetime applicationLifetime)
+            ILoggerFactory loggerFactory, IServiceProvider serviceProvider)
         {
             ServerOptions = serverOptions.Value ?? new StandaloneKestrelServerOptions();
             _loggerFactory = loggerFactory;
             _serviceProvider = serviceProvider;
             _logger = loggerFactory.CreateLogger<StandaloneKestrelServerService>();
-            _applicationLifetime = applicationLifetime;
         }
-
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
@@ -57,10 +53,7 @@ namespace TS.StandaloneKestrelServer
                 if (ServerOptions.ConfigurationLoader?.ReloadOnChange == true)
                 {
                     var reloadToken = ServerOptions.ConfigurationLoader?.GetReloadToken();
-                    reloadToken?.RegisterChangeCallback(
-                        state => ((StandaloneKestrelServerService) state).OnConfigurationChangeAsync(),
-                        this
-                    );
+                    RegisterConfigurationChangeCallback(reloadToken);
                 }
             }
             finally
@@ -84,51 +77,11 @@ namespace TS.StandaloneKestrelServer
             }
         }
 
-        protected virtual async Task OnConfigurationChangeAsync()
-        {
-            await _semaphoreSlim.WaitAsync();
-            try
-            {
-                if (_stopping)
-                    return;
-
-                _logger.LogDebug("Configuration changed. Checking for changes");
-
-                var newServerType = ServerOptions.ConfigurationLoader?.GetServerType();
-
-                if (newServerType is null)
-                    return;
-
-                var actualServerType = Type.GetType(newServerType);
-
-                if (actualServerType is null || actualServerType == Server?.GetType())
-                    return;
-
-                _logger.LogInformation("Restarting Standalone Kestrel Server Service to use {NewServerType}",
-                    newServerType);
-                ServerOptions.ServerType = newServerType;
-
-                var oldServer = Server;
-                CreateServer();
-
-                if (oldServer is not null)
-                    await oldServer.StopAsync(CancellationToken.None);
-
-                await StartServer(CancellationToken.None);
-            }
-            finally
-            {
-                var reloadToken = ServerOptions.ConfigurationLoader?.GetReloadToken();
-                reloadToken?.RegisterChangeCallback(
-                    async state => await ((StandaloneKestrelServerService) state).OnConfigurationChangeAsync(),
-                    this
-                );
-                _semaphoreSlim.Release();
-            }
-        }
-
         protected virtual void CreateServer()
         {
+            if (Server is not null)
+                return;
+
             try
             {
                 var server =
@@ -183,7 +136,7 @@ namespace TS.StandaloneKestrelServer
 
         protected virtual RequestDelegate BuildRequestPipeline()
         {
-            if (_requestPipeline != null)
+            if (_requestPipeline is not null)
                 return _requestPipeline;
 
             var applicationBuilder = new ApplicationBuilder(_serviceProvider);
@@ -197,7 +150,7 @@ namespace TS.StandaloneKestrelServer
 
         protected virtual Application GetApplication()
         {
-            if (_application != null)
+            if (_application is not null)
                 return _application;
 
             var requestPipeline = BuildRequestPipeline();
@@ -207,14 +160,13 @@ namespace TS.StandaloneKestrelServer
             var applicationType = ServerOptions.RealApplicationType;
 
             _logger.LogDebug("Using Application Type: {ApplicationType}", applicationType.AssemblyQualifiedName);
-            
+
             if (applicationType == typeof(Application))
             {
                 _application = new Application(requestPipeline, _loggerFactory, httpContextFactory);
                 return _application;
             }
-            
-       
+
 
             var ctorArgs = new object[] {requestPipeline, httpContextFactory};
             var application = ActivatorUtilities.CreateInstance(_serviceProvider, applicationType, ctorArgs);
@@ -230,5 +182,126 @@ namespace TS.StandaloneKestrelServer
 
         protected virtual Action<IApplicationBuilder> GetLastMiddleware() =>
             builder => builder.Use(_ => _ => Task.CompletedTask);
+
+        #region Configuration Relaoder
+
+        protected virtual void RegisterConfigurationChangeCallback(IChangeToken? reloadToken)
+        {
+            static void ConfigurationChangeCallback(object state)
+            {
+                var service = (StandaloneKestrelServerService) state;
+                Task.Run(service.OnConfigurationChangeAsync);
+            }
+
+            reloadToken?.RegisterChangeCallback(ConfigurationChangeCallback, this);
+        }
+
+        protected virtual async Task OnConfigurationChangeAsync()
+        {
+            await _semaphoreSlim.WaitAsync();
+            try
+            {
+                if (_stopping)
+                    return;
+
+                _logger.LogDebug("Configuration changed. Checking for changes");
+
+                var newServerType = ServerOptions.ConfigurationLoader?.GetServerType();
+                CheckConfigurationServerType(newServerType, out var reloadServer);
+
+                var newApplicationType = ServerOptions.ConfigurationLoader?.GetApplicationType();
+                CheckConfigurationApplicationType(newApplicationType, out var reloadApplication);
+
+                if (!reloadServer && !reloadApplication)
+                {
+                    return;
+                }
+
+                _logger.LogInformation(
+                    "Restarting Standalone Kestrel Server Service to use {NewServerType} with Application {NewApplicationType}",
+                    ServerOptions.RealServerType, ServerOptions.RealApplicationType);
+                var oldServer = Server;
+                Server = null;
+
+                CreateServer();
+
+                if (oldServer is not null)
+                {
+                    await oldServer.StopAsync(CancellationToken.None);
+                    if (oldServer is IDisposable disposable)
+                        oldServer.Dispose();
+                }
+
+                await StartServer(CancellationToken.None);
+            }
+            finally
+            {
+                var reloadToken = ServerOptions.ConfigurationLoader?.GetReloadToken();
+                RegisterConfigurationChangeCallback(reloadToken);
+                _semaphoreSlim.Release();
+            }
+        }
+
+        protected void CheckConfigurationServerType(string? newServerType, out bool mustReload)
+        {
+            mustReload = false;
+            if (newServerType is null)
+            {
+                return;
+            }
+
+            var actualServerType = Type.GetType(newServerType);
+            if (actualServerType is null)
+            {
+                _logger.LogError("Could not reload Kestrel Server. Invalid type given: {Type}",
+                    newServerType);
+                return;
+            }
+
+            if (actualServerType == Server?.GetType())
+            {
+                return;
+            }
+
+            ServerOptions.ServerType = newServerType;
+            mustReload = true;
+        }
+
+        protected void CheckConfigurationApplicationType(string? newApplicationType, out bool mustReload)
+        {
+            mustReload = false;
+            if (newApplicationType is null)
+            {
+                return;
+            }
+
+            var actualApplicationType = Type.GetType(newApplicationType);
+
+            if (actualApplicationType is null)
+            {
+                _logger.LogError("Could not reload Kestrel Application. Invalid type given: {Type}",
+                    newApplicationType);
+                return;
+            }
+
+            if (actualApplicationType == GetApplication().GetType())
+            {
+                return;
+            }
+
+            ServerOptions.ApplicationType = newApplicationType;
+
+            //Set application to null so that it will be recreated.
+            // ReSharper disable once SuspiciousTypeConversion.Global - Derived classes are.
+            if (_application is IDisposable disposable)
+            {
+                disposable.Dispose();
+            }
+
+            _application = null;
+            mustReload = true;
+        }
+
+        #endregion
     }
 }
