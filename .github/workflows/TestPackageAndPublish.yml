@@ -58,9 +58,10 @@ jobs:
       - name: Test
         run: dotnet test --no-restore --verbosity normal
       - name: Pack
-        run: dotnet pack --verbosity normal -c Release --no-restore --include-symbols --version-suffix "$SUFFIX-$GITHUB_RUN_ID" -p:SymbolPackageFormat=snupkg src/StandaloneKestrelServer
+        run: dotnet pack --verbosity normal -c Release --no-restore --include-symbols --version-suffix "$BRANCH-$SUFFIX-$GITHUB_RUN_ID" -p:SymbolPackageFormat=snupkg src/StandaloneKestrelServer
         env:
           SUFFIX: ${{ inputs.VERSION_SUFFIX }}
+          BRANCH: ${{ inputs.BRANCH }}
       - name: Upload .nupkg
         uses: actions/upload-artifact@v2
         with:
