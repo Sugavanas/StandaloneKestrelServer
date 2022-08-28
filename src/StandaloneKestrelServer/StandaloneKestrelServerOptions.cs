@@ -70,7 +70,7 @@ namespace TS.StandaloneKestrelServer
 
         internal StandaloneKestrelServerOptions ConfigureKestrel(IConfigurationSection? config, bool reloadOnChange)
         {
-            if (config?.Value != null)
+            if (config != null)
             {
                 KestrelServerOptions.Configure(config, reloadOnChange);
             }
