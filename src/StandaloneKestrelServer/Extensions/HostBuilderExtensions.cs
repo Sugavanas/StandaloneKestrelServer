@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
@@ -22,6 +23,10 @@ namespace TS.StandaloneKestrelServer.Extensions
                     options.Configure(
                         context.Configuration.GetSection("StandaloneKestrel"),
                         true));
+
+                var listener = new DiagnosticListener("TS.StandaloneKestrelServer");
+                service.AddSingleton<DiagnosticListener>(listener);
+                service.AddSingleton<DiagnosticSource>(listener);
             });
         }
 
