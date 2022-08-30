@@ -63,7 +63,7 @@ namespace StandaloneKestrelServerTests
             Assert.True(httpServerOptions.RealServerType == typeof(HttpTestServer));
             Assert.True(httpServerOptions.ServerType == typeof(HttpTestServer).AssemblyQualifiedName);
         }
-        
+
         [Fact]
         public void UseServerTypeDefaultCheck()
         {
@@ -71,20 +71,46 @@ namespace StandaloneKestrelServerTests
             Assert.True(httpServerOptions.RealServerType == typeof(StandaloneKestrelServer));
             Assert.True(httpServerOptions.ServerType == typeof(StandaloneKestrelServer).AssemblyQualifiedName);
         }
-        
-        
+
         [Fact]
         public void UseServerTypeInvalidCheck()
         {
             var httpServerOptions = new StandaloneKestrelServerOptions();
-            Assert.Throws<Exception>(() => httpServerOptions.UseServer(typeof(InvalidHttpTestServer).AssemblyQualifiedName!));
+            Assert.Throws<Exception>(() =>
+                httpServerOptions.UseServer(typeof(InvalidHttpTestServer).AssemblyQualifiedName!));
         }
-        
+
+        [Fact]
+        public void UseApplicationTypeCheck()
+        {
+            var httpServerOptions = new StandaloneKestrelServerOptions();
+            httpServerOptions.UseApplication(typeof(TestApplication).AssemblyQualifiedName!);
+            Assert.True(httpServerOptions.RealApplicationType == typeof(TestApplication));
+            Assert.True(httpServerOptions.ApplicationType == typeof(TestApplication).AssemblyQualifiedName);
+        }
+
+        [Fact]
+        public void UseApplicationTypeDefaultCheck()
+        {
+            var httpServerOptions = new StandaloneKestrelServerOptions();
+            Assert.True(httpServerOptions.RealApplicationType == typeof(Application));
+            Assert.True(httpServerOptions.ApplicationType == typeof(Application).AssemblyQualifiedName);
+        }
+
+        [Fact]
+        public void UseApplicationTypeInvalidCheck()
+        {
+            var httpServerOptions = new StandaloneKestrelServerOptions();
+            Assert.Throws<Exception>(() =>
+                httpServerOptions.UseApplication(typeof(InvalidApplication).AssemblyQualifiedName!));
+        }
+
         internal class InvalidHttpTestServer : IServer
         {
             public IFeatureCollection Features { get; } = new FeatureCollection();
-        
-            public Task StartAsync<TContext>(IHttpApplication<TContext> application, CancellationToken cancellationToken) where TContext : notnull
+
+            public Task StartAsync<TContext>(IHttpApplication<TContext> application,
+                CancellationToken cancellationToken) where TContext : notnull
             {
                 throw new System.NotImplementedException();
             }
@@ -93,10 +119,32 @@ namespace StandaloneKestrelServerTests
             {
                 throw new System.NotImplementedException();
             }
-        
+
             public void Dispose()
             {
                 throw new System.NotImplementedException();
+            }
+        }
+
+        internal class InvalidApplication : IHttpApplication<InvalidApplication.Context>
+        {
+            public Context CreateContext(IFeatureCollection contextFeatures)
+            {
+                throw new NotImplementedException();
+            }
+
+            public Task ProcessRequestAsync(Context context)
+            {
+                throw new NotImplementedException();
+            }
+
+            public void DisposeContext(Context context, Exception? exception)
+            {
+                throw new NotImplementedException();
+            }
+
+            public class Context
+            {
             }
         }
     }

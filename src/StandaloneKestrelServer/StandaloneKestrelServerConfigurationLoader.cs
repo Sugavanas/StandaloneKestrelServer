@@ -20,6 +20,11 @@ namespace TS.StandaloneKestrelServer
         {
             return Configuration.GetValue<string>("ServerType");
         }
+        
+        public string GetApplicationType()
+        {
+            return Configuration.GetValue<string>("ApplicationType");
+        }
 
         public IChangeToken GetReloadToken()
         {

@@ -1,12 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFrameworks>net5.0;net6.0</TargetFrameworks>
+        <TargetFramework>net6.0</TargetFramework>
         <AssemblyName>TS.StandaloneKestrelServer</AssemblyName>
         <RootNamespace>TS.StandaloneKestrelServer</RootNamespace>
         <Description>.NET Standalone Kestrel Server.</Description>
         <Authors>Sugavanas</Authors>
-        <VersionPrefix>1.1.0</VersionPrefix>
+        <VersionPrefix>1.2.0-dev</VersionPrefix>
         <RepositoryUrl>https://github.com/Sugavanas/StandaloneKestrelServer/</RepositoryUrl>
     </PropertyGroup>
     
@@ -15,7 +15,7 @@
     </PropertyGroup>
     
     <ItemGroup>
-        <FrameworkReference Include="Microsoft.AspNetCore.App" Version="6.0.0"/>
+        <FrameworkReference Include="Microsoft.AspNetCore.App" Version="6.0.0" />
     </ItemGroup>
 
 </Project>
