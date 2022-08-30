@@ -12,21 +12,14 @@ namespace TS.StandaloneKestrelServer.Extensions
         {
             return hostBuilder.ConfigureServices((context, service) =>
             {
-                service.AddOptions<StandaloneKestrelServerOptions>();
-                service.AddHostedService<StandaloneKestrelServerService>();
-                service
-                    .AddTransient<IConfigureOptions<StandaloneKestrelServerOptions>,
-                        StandaloneKestrelServerOptionsSetup>();
+                service.AddStandaloneKestrelServerServices();
+
                 service.Configure<StandaloneKestrelServerOptions>(
                     context.Configuration.GetSection("StandaloneKestrel"));
                 service.Configure((StandaloneKestrelServerOptions options) =>
                     options.Configure(
                         context.Configuration.GetSection("StandaloneKestrel"),
                         true));
-
-                var listener = new DiagnosticListener("TS.StandaloneKestrelServer");
-                service.AddSingleton<DiagnosticListener>(listener);
-                service.AddSingleton<DiagnosticSource>(listener);
             });
         }
 
@@ -41,7 +34,10 @@ namespace TS.StandaloneKestrelServer.Extensions
         {
             return hostBuilder.ConfigureServices
             (
-                (context, service) => { service.Configure(options); }
+                (_, service) =>
+                {
+                    service.Configure(options);
+                }
             );
         }
     }
