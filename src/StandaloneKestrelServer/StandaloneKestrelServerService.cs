@@ -134,7 +134,10 @@ namespace TS.StandaloneKestrelServer
             return addresses;
         }
 
-        protected virtual RequestDelegate BuildRequestPipeline()
+        [Obsolete("Use GetRequestPipeline()")]
+        protected virtual RequestDelegate BuildRequestPipeline() => GetRequestPipeline();
+
+        protected virtual RequestDelegate GetRequestPipeline()
         {
             if (_requestPipeline is not null)
                 return _requestPipeline;
@@ -153,7 +156,7 @@ namespace TS.StandaloneKestrelServer
             if (_application is not null)
                 return _application;
 
-            var requestPipeline = BuildRequestPipeline();
+            var requestPipeline = GetRequestPipeline();
             var httpContextFactory = _serviceProvider.GetService<IHttpContextFactory>() ??
                                      new DefaultHttpContextFactory(_serviceProvider);
 
