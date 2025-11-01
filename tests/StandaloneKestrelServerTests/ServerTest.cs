@@ -227,7 +227,7 @@ namespace StandaloneKestrelServerTests
 
     internal class HttpTestServer : StandaloneKestrelServer
     {
-        public HttpTestServer(IOptions<KestrelServerOptions> options, IConnectionListenerFactory transportFactory,
+        public HttpTestServer(IOptions<StandaloneKestrelServerOptions> options, IConnectionListenerFactory transportFactory,
             ILoggerFactory loggerFactory) : base(options, transportFactory, loggerFactory)
         {
         }
