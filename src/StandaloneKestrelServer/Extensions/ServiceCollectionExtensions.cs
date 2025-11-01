@@ -19,12 +19,12 @@ namespace TS.StandaloneKestrelServer.Extensions
             service.AddOptions<StandaloneKestrelServerOptions>();
             service
                 .AddTransient<IConfigureOptions<StandaloneKestrelServerOptions>, StandaloneKestrelServerOptionsSetup>();
-            
+
             // Required for routing to work
             // TODO: Make this optional 
             service.TryAddSingleton(sp => new DiagnosticListener("TS.StandaloneKestrelServer"));
             service.TryAddSingleton<DiagnosticSource>(sp => sp.GetRequiredService<DiagnosticListener>());
-            
+
             // The following is required to add kestrel specific services which are currently internal
             // https://github.com/dotnet/aspnetcore/issues/48956
             var dummyServiceCollection = new ServiceCollection();
@@ -46,11 +46,12 @@ namespace TS.StandaloneKestrelServer.Extensions
         public static IServiceCollection ConfigureStandaloneKestrelServer(
             this IServiceCollection serviceCollection, IConfiguration section)
         {
-            return serviceCollection.Configure<StandaloneKestrelServerOptions>(section);
+            serviceCollection.Configure((StandaloneKestrelServerOptions options) => options.Configure(section, true));
+            return serviceCollection;
         }
 
         public static IServiceCollection ConfigureStandaloneKestrelServer(
-            this IServiceCollection serviceCollection,  Action<StandaloneKestrelServerOptions> configureOptions)
+            this IServiceCollection serviceCollection, Action<StandaloneKestrelServerOptions> configureOptions)
         {
             return serviceCollection.Configure(configureOptions);
         }
