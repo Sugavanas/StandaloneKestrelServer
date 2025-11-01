@@ -204,16 +204,14 @@ namespace StandaloneKestrelServerTests
         public HttpTestServerService(Action<StandaloneKestrelServerOptions> configureOptions)
         {
             var serviceCollection = new ServiceCollection();
-
-            serviceCollection
-                .AddTransient<IConfigureOptions<StandaloneKestrelServerOptions>, StandaloneKestrelServerOptionsSetup>();
-            serviceCollection.AddOptions<StandaloneKestrelServerOptions>();
-            serviceCollection.Configure<StandaloneKestrelServerOptions>(configureOptions);
-
+            
             serviceCollection.AddSingleton<ILoggerFactory, NullLoggerFactory>();
             serviceCollection.AddSingleton(typeof(ILogger<>), typeof(NullLogger<>));
             serviceCollection.AddSingleton<IHostApplicationLifetime, ApplicationLifetime>();
             serviceCollection.AddSingleton<IHostEnvironment, HostingEnvironment>();
+
+            serviceCollection.AddStandaloneKestrelServerServices();
+            serviceCollection.ConfigureStandaloneKestrelServer(configureOptions);
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
 
@@ -229,11 +227,6 @@ namespace StandaloneKestrelServerTests
 
     internal class HttpTestServer : StandaloneKestrelServer
     {
-        public HttpTestServer(IOptions<StandaloneKestrelServerOptions> standaloneKestrelServerOptions,
-            ILoggerFactory loggerFactory) : base(standaloneKestrelServerOptions, loggerFactory)
-        {
-        }
-
         public HttpTestServer(IOptions<KestrelServerOptions> options, IConnectionListenerFactory transportFactory,
             ILoggerFactory loggerFactory) : base(options, transportFactory, loggerFactory)
         {
