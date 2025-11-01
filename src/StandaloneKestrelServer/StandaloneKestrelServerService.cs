@@ -134,9 +134,6 @@ namespace TS.StandaloneKestrelServer
             return addresses;
         }
 
-        [Obsolete("Use GetRequestPipeline()")]
-        protected virtual RequestDelegate BuildRequestPipeline() => GetRequestPipeline();
-
         protected virtual RequestDelegate GetRequestPipeline()
         {
             if (_requestPipeline is not null)
@@ -169,8 +166,7 @@ namespace TS.StandaloneKestrelServer
                 _application = new Application(requestPipeline, _loggerFactory, httpContextFactory);
                 return _application;
             }
-
-
+            
             var ctorArgs = new object[] {requestPipeline, httpContextFactory};
             var application = ActivatorUtilities.CreateInstance(_serviceProvider, applicationType, ctorArgs);
 

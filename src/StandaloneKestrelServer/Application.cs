@@ -35,7 +35,6 @@ namespace TS.StandaloneKestrelServer
             if (contextFeatures is IHostContextContainer<Context> container)
             {
                 context = container.HostContext;
-                // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
                 if (context is null)
                 {
                     HttpContext httpContext;
@@ -74,10 +73,10 @@ namespace TS.StandaloneKestrelServer
                 {
                     httpContext = new DefaultHttpContext(contextFeatures);
                 }
+
                 context = new Context(httpContext);
             }
 
-            context.HttpContext.Features.Set<PersistentContainer>(context.Container);
             return context;
         }
 
@@ -100,8 +99,6 @@ namespace TS.StandaloneKestrelServer
         public class Context
         {
             public HttpContext HttpContext { get; set; }
-            
-            public PersistentContainer Container { get; } = new();
 
             public Context(HttpContext httpContext)
             {
