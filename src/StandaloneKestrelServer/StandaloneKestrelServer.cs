@@ -16,12 +16,18 @@ namespace TS.StandaloneKestrelServer
                 loggerFactory)
         {
         }
+        
+        public StandaloneKestrelServer(IOptions<StandaloneKestrelServerOptions> standaloneKestrelServerOptions,
+            IConnectionListenerFactory transportFactory, ILoggerFactory loggerFactory,
+            object? dummy = null) // Additional parameter added to work around .NET8.0 bug with ActivatorUtilitiesConstructor: https://github.com/dotnet/runtime/issues/95915
+            : this(standaloneKestrelServerOptions, transportFactory, loggerFactory)
+        {
+        }
 
         [Obsolete("If KestrelServerOptions needs to be passed in directly, use KestrelServer class directly")]
         public StandaloneKestrelServer(IOptions<KestrelServerOptions> options,
             IConnectionListenerFactory transportFactory, 
-            ILoggerFactory loggerFactory, 
-            object? dummy = null // Additional parameter added to work around .NET8.0 bug with ActivatorUtilitiesConstructor: https://github.com/dotnet/runtime/issues/95915
+            ILoggerFactory loggerFactory
             )
             : base(options, transportFactory, loggerFactory)
         {
