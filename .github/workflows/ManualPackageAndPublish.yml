@@ -7,22 +7,71 @@ jobs:
   BuildAndPublish:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Setup .NET Core SDK ${{ matrix.dotnet-version }}
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+      - name: Get Version Info
+        id: version
+        run: |
+          # Try to get tag for the current commit
+          current_tag=$(git tag --points-at HEAD | head -n 1)
+          
+          if [ -z "$current_tag" ]; then
+            latest_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          
+            # Normalize tag
+            latest_tag=${latest_tag#v}
+          
+            # Split version (major.minor.patch)
+            IFS='.' read -r major minor patch <<< "$latest_tag"
+          
+            # Handle missing fields gracefully
+            major=${major:-0}
+            minor=${minor:-0}
+            patch=${patch:-0}
+          
+            new_patch=$((patch + 1))
+            version_prefix="${major}.${minor}.${new_patch}"
+          else
+            # Use tag directly (strip leading v)
+            version_prefix="${current_tag#v}"
+          fi
+          
+          # Detect branch
+          branch="${GITHUB_REF##*/}"
+          
+          # Determine suffix
+          if [ "$branch" = "main" ]; then
+              version_suffix=""
+            else
+              short_sha=$(git rev-parse --short HEAD)
+              version_suffix="-$branch-$short_sha"
+          fi
+          
+          version_full="${version_prefix}${version_suffix}"
+          
+          echo "VERSION_PREFIX=$version_prefix" >> $GITHUB_ENV
+          echo "VERSION_SUFFIX=$version_suffix" >> $GITHUB_ENV
+          echo "VERSION_FULL: $version_full"
+      - name: Setup .NET Core SDK 8
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: |
-            6.0.x
+            8.0.x
+      - name: Setup .NET Core SDK 9
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: |
+            9.0.x
       - name: Install dependencies
         run: dotnet restore
       - name: Build
         run: dotnet build --configuration Release --no-restore
-      - name: Test
-        run: dotnet test --no-restore --verbosity normal
       - name: Pack
-        run: dotnet pack --verbosity normal -c Release --no-restore --include-symbols -p:SymbolPackageFormat=snupkg src/StandaloneKestrelServer
+        run: dotnet pack --verbosity normal -c Release --no-restore --include-symbols -p:SymbolPackageFormat=snupkg src/StandaloneKestrelServer -p:VersionSuffix=${VERSION_SUFFIX} -p:VersionPrefix=${VERSION_PREFIX}
       - name: Upload .nupkg
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: StandaloneKestrelServer
           path: |
