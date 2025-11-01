@@ -19,17 +19,13 @@ namespace TS.StandaloneKestrelServer.Extensions
             service.AddOptions<StandaloneKestrelServerOptions>();
             service
                 .AddTransient<IConfigureOptions<StandaloneKestrelServerOptions>, StandaloneKestrelServerOptionsSetup>();
-
-            var listener = new DiagnosticListener("TS.StandaloneKestrelServer");
-            service.AddSingleton<DiagnosticListener>(listener);
-            service.AddSingleton<DiagnosticSource>(listener);
-
+            
             // The following is required to add kestrel specific services which are currently internal
             // https://github.com/dotnet/aspnetcore/issues/48956
             var dummyServiceCollection = new ServiceCollection();
             var dummyBuilder = new DummyWebHostBuilder(dummyServiceCollection);
             dummyBuilder.UseKestrelCore();
-            
+
             var kestrelServices = dummyServiceCollection.Where(sd =>
                 sd.ServiceType == typeof(IConnectionListenerFactory) ||
                 sd.ServiceType.FullName?.Contains("IHttpsConfigurationService") == true);
@@ -38,9 +34,22 @@ namespace TS.StandaloneKestrelServer.Extensions
             {
                 service.Add(serviceDescriptor);
             }
-            
+
             return service;
         }
+
+        public static IServiceCollection ConfigureStandaloneKestrelServer(
+            this IServiceCollection serviceCollection, IConfiguration section)
+        {
+            return serviceCollection.Configure<StandaloneKestrelServerOptions>(section);
+        }
+
+        public static IServiceCollection ConfigureStandaloneKestrelServer(
+            this IServiceCollection serviceCollection,  Action<StandaloneKestrelServerOptions> configureOptions)
+        {
+            return serviceCollection.Configure(configureOptions);
+        }
+
 
         private class DummyWebHostBuilder : IWebHostBuilder
         {
@@ -50,7 +59,7 @@ namespace TS.StandaloneKestrelServer.Extensions
             {
                 _serviceCollection = serviceCollection;
             }
-            
+
             public IWebHost Build() => throw new NotImplementedException();
 
 
@@ -65,7 +74,9 @@ namespace TS.StandaloneKestrelServer.Extensions
             }
 
             public IWebHostBuilder ConfigureServices(
-                Action<WebHostBuilderContext, IServiceCollection> configureServices)=> throw new NotImplementedException(); 
+                Action<WebHostBuilderContext, IServiceCollection> configureServices) =>
+                throw new NotImplementedException();
+
             public string? GetSetting(string key) => throw new NotImplementedException();
 
             public IWebHostBuilder UseSetting(string key, string? value) => throw new NotImplementedException();
