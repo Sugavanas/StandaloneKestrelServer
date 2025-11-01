@@ -46,10 +46,10 @@ jobs:
               version_suffix=""
             else
               short_sha=$(git rev-parse --short HEAD)
-              version_suffix="-$branch-$short_sha"
+              version_suffix="$branch-$short_sha"
           fi
           
-          version_full="${version_prefix}${version_suffix}"
+          version_full="${version_prefix}-${version_suffix}"
           
           echo "VERSION_PREFIX=$version_prefix" >> $GITHUB_ENV
           echo "VERSION_SUFFIX=$version_suffix" >> $GITHUB_ENV
