@@ -11,14 +11,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Setup .NET Core SDK ${{ matrix.dotnet-version }}
+      - name: Setup .NET Core SDK 8
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: |
-            6.0.x
+            8.0.x
+      - name: Setup .NET Core SDK 9
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: |
+            9.0.x
       - name: Install dependencies
         run: dotnet restore
       - name: Build
         run: dotnet build --configuration Release --no-restore
-      - name: Test
-        run: dotnet test --no-restore --verbosity normal
+      - name: Test .NET 8.0
+        run: dotnet test --no-restore --verbosity normal -f net8.0
+      - name: Test .NET 9.0
+        run: dotnet test --no-restore --verbosity normal -f net9.0

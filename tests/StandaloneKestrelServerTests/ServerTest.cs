@@ -88,7 +88,7 @@ namespace StandaloneKestrelServerTests
 
             serverTypeMock.SetupGet(c => c.Value).Returns(typeof(HttpTestServer).AssemblyQualifiedName ?? "");
             applicationTypeMock.SetupGet(c => c.Value).Returns(typeof(Application).AssemblyQualifiedName ?? "");
-            reloadTokenMock.Setup(c => c.RegisterChangeCallback(It.IsAny<Action<object>>(), It.IsAny<object>()))
+            reloadTokenMock.Setup(c => c.RegisterChangeCallback(It.IsAny<Action<object?>>(), It.IsAny<object>()))
                 .Callback<Action<object>, object>((action, o) =>
                 {
                     callback = action;
@@ -141,7 +141,7 @@ namespace StandaloneKestrelServerTests
             // The configuration is reloaded asynchronously  
             task = Task.Run(async () =>
             {
-                while (called != 2)
+                while (called != 3)
                 {
                     await Task.Delay(500);
                 }
@@ -205,15 +205,13 @@ namespace StandaloneKestrelServerTests
         {
             var serviceCollection = new ServiceCollection();
 
-            serviceCollection
-                .AddTransient<IConfigureOptions<StandaloneKestrelServerOptions>, StandaloneKestrelServerOptionsSetup>();
-            serviceCollection.AddOptions<StandaloneKestrelServerOptions>();
-            serviceCollection.Configure<StandaloneKestrelServerOptions>(configureOptions);
-
             serviceCollection.AddSingleton<ILoggerFactory, NullLoggerFactory>();
             serviceCollection.AddSingleton(typeof(ILogger<>), typeof(NullLogger<>));
             serviceCollection.AddSingleton<IHostApplicationLifetime, ApplicationLifetime>();
             serviceCollection.AddSingleton<IHostEnvironment, HostingEnvironment>();
+
+            serviceCollection.AddStandaloneKestrelServerServices();
+            serviceCollection.ConfigureStandaloneKestrelServer(configureOptions);
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
 
@@ -229,12 +227,8 @@ namespace StandaloneKestrelServerTests
 
     internal class HttpTestServer : StandaloneKestrelServer
     {
-        public HttpTestServer(IOptions<StandaloneKestrelServerOptions> standaloneKestrelServerOptions,
-            ILoggerFactory loggerFactory) : base(standaloneKestrelServerOptions, loggerFactory)
-        {
-        }
-
-        public HttpTestServer(IOptions<KestrelServerOptions> options, IConnectionListenerFactory transportFactory,
+        public HttpTestServer(IOptions<StandaloneKestrelServerOptions> options,
+            IConnectionListenerFactory transportFactory,
             ILoggerFactory loggerFactory) : base(options, transportFactory, loggerFactory)
         {
         }

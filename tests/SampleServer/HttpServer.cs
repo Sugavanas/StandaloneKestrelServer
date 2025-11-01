@@ -9,11 +9,7 @@ namespace SampleServer
 {
     public class HttpServer : TS.StandaloneKestrelServer.StandaloneKestrelServer
     {
-        public HttpServer(IOptions<StandaloneKestrelServerOptions> standaloneKestrelServerOptions, ILoggerFactory loggerFactory) : base(standaloneKestrelServerOptions, loggerFactory)
-        {
-        }
-        
-        public HttpServer(IOptions<KestrelServerOptions> options, IConnectionListenerFactory transportFactory, ILoggerFactory loggerFactory) : base(options, transportFactory, loggerFactory)
+        public HttpServer(IOptions<StandaloneKestrelServerOptions> options, IConnectionListenerFactory transportFactory, ILoggerFactory loggerFactory) : base(options, transportFactory, loggerFactory)
         {
         }
     }

@@ -16,12 +16,12 @@ namespace TS.StandaloneKestrelServer
             ReloadOnChange = reloadOnChange;
         }
 
-        public string GetServerType()
+        public string? GetServerType()
         {
             return Configuration.GetValue<string>("ServerType");
         }
         
-        public string GetApplicationType()
+        public string? GetApplicationType()
         {
             return Configuration.GetValue<string>("ApplicationType");
         }

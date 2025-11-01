@@ -19,7 +19,8 @@ namespace StandaloneKestrelServerTests
         public void TestCreateContext()
         {
             var featureCollection = new FeatureCollection();
-            var (mockHttpContextFactory, mockHttpContext) = CreateMockHttpFactoryWithReturnableFeatures(featureCollection);
+            var (mockHttpContextFactory, mockHttpContext) =
+                CreateMockHttpFactoryWithReturnableFeatures(featureCollection);
 
             var application = new Application((_) => Task.CompletedTask, new NullLoggerFactory(),
                 mockHttpContextFactory.Object);
@@ -27,11 +28,7 @@ namespace StandaloneKestrelServerTests
             var context = application.CreateContext(featureCollection);
 
             Assert.NotNull(context);
-            Assert.NotNull(context.Container);
             Assert.Equal(mockHttpContext.Object, context.HttpContext);
-            
-            Assert.IsType<PersistentContainer>(context.Container);
-            Assert.NotNull(featureCollection.Get<PersistentContainer>());
         }
 
         [Fact]
@@ -47,26 +44,25 @@ namespace StandaloneKestrelServerTests
 
             Assert.NotNull(context);
             Assert.NotNull(context.HttpContext);
-            Assert.NotNull(context.Container);
-
+            
             Assert.IsType<DefaultHttpContext>(context.HttpContext);
-            Assert.IsType<PersistentContainer>(context.Container);
-
+            
             Assert.Equal(featureCollection, context.HttpContext.Features);
         }
-        
+
         [Fact]
         public void TestCreateContextIsStoredInHostContextContainer()
         {
             var featureCollection = new FeatureCollectionWithHostContextContainer();
-            var (mockHttpContextFactory, mockHttpContext) = CreateMockHttpFactoryWithReturnableFeatures(featureCollection);
-            
-            var application = new Application((_) => Task.CompletedTask, new NullLoggerFactory(), mockHttpContextFactory.Object);
-            
+            var (mockHttpContextFactory, mockHttpContext) =
+                CreateMockHttpFactoryWithReturnableFeatures(featureCollection);
+
+            var application = new Application((_) => Task.CompletedTask, new NullLoggerFactory(),
+                mockHttpContextFactory.Object);
+
             var context = application.CreateContext(featureCollection);
 
             Assert.NotNull(context);
-            Assert.NotNull(context.Container);
             Assert.Equal(mockHttpContext.Object, context.HttpContext);
 
             Assert.Equal(featureCollection, context.HttpContext.Features);
@@ -84,42 +80,27 @@ namespace StandaloneKestrelServerTests
 
             Assert.NotNull(context);
             Assert.NotNull(context.HttpContext);
-            Assert.NotNull(context.Container);
-
+  
             Assert.Equal(featureCollection, context.HttpContext.Features);
             Assert.Equal(context, featureCollection.HostContext);
-        }
-
-        [Fact]
-        public void TestCreateContextStoresPersistentContainerInHttpContext()
-        {
-            var application = new Application((_) => Task.CompletedTask, new NullLoggerFactory(), null!);
-
-            var featureCollection = new FeatureCollection();
-            var context = application.CreateContext(featureCollection);
-
-            Assert.NotNull(context);
-            Assert.NotNull(context.HttpContext);
-            Assert.NotNull(context.Container);
-
-            Assert.Equal(featureCollection, context.HttpContext.Features);
-            Assert.Equal(context.Container, featureCollection.Get<PersistentContainer>());
         }
         
         [Fact]
         public void TestCreateContextReusesContextFromHostContextContainer()
         {
             var featureCollection = new FeatureCollectionWithHostContextContainer();
-            var (mockHttpContextFactory, mockHttpContext) = CreateMockHttpFactoryWithReturnableFeatures(featureCollection);
-            
-            var application = new Application((_) => Task.CompletedTask, new NullLoggerFactory(), mockHttpContextFactory.Object);
-            
+            var (mockHttpContextFactory, mockHttpContext) =
+                CreateMockHttpFactoryWithReturnableFeatures(featureCollection);
+
+            var application = new Application((_) => Task.CompletedTask, new NullLoggerFactory(),
+                mockHttpContextFactory.Object);
+
             var context = application.CreateContext(featureCollection);
 
             Assert.NotNull(context);
             mockHttpContextFactory.Verify(f => f.Create(featureCollection), Times.Once);
             mockHttpContextFactory.Invocations.Clear();
-            
+
             var context2 = application.CreateContext(featureCollection);
 
             Assert.Equal(context, context2);
@@ -146,9 +127,10 @@ namespace StandaloneKestrelServerTests
         [Fact]
         public async Task TestProcessRequestAsync()
         {
+            var testValue = 0;
             RequestDelegate requestDelegate = httpContext =>
             {
-                httpContext.Features.Get<PersistentContainer>()?.Set<string>("Test");
+                testValue++;
                 return Task.CompletedTask;
             };
 
@@ -157,26 +139,9 @@ namespace StandaloneKestrelServerTests
 
             await application.ProcessRequestAsync(context);
 
-            Assert.Equal("Test", context.Container.Get<string>());
+            Assert.Equal(1, testValue);
         }
 
-        [Fact]
-        public async Task TestHttpContextExtensionGetPersistentContainer()
-        {
-            RequestDelegate requestDelegate = httpContext =>
-            {
-                Assert.NotNull(httpContext.GetPersistentContainer());
-                httpContext.GetPersistentContainer()?.Set<string>("Test");
-                return Task.CompletedTask;
-            };
-
-            var application = new Application(requestDelegate, new NullLoggerFactory(), null!);
-            var context = application.CreateContext(new FeatureCollection());
-
-            await application.ProcessRequestAsync(context);
-
-            Assert.Equal("Test", context.Container.Get<string>());
-        }
 
         private (Mock<IHttpContextFactory> mockHttpContextFactory, Mock<HttpContext> mockHttpContext)
             CreateMockHttpFactoryWithReturnableFeatures(IFeatureCollection featureCollection)
