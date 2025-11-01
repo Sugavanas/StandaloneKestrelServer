@@ -141,7 +141,7 @@ namespace StandaloneKestrelServerTests
             // The configuration is reloaded asynchronously  
             task = Task.Run(async () =>
             {
-                while (called != 2)
+                while (called != 3)
                 {
                     await Task.Delay(500);
                 }
@@ -204,7 +204,7 @@ namespace StandaloneKestrelServerTests
         public HttpTestServerService(Action<StandaloneKestrelServerOptions> configureOptions)
         {
             var serviceCollection = new ServiceCollection();
-            
+
             serviceCollection.AddSingleton<ILoggerFactory, NullLoggerFactory>();
             serviceCollection.AddSingleton(typeof(ILogger<>), typeof(NullLogger<>));
             serviceCollection.AddSingleton<IHostApplicationLifetime, ApplicationLifetime>();
@@ -227,7 +227,8 @@ namespace StandaloneKestrelServerTests
 
     internal class HttpTestServer : StandaloneKestrelServer
     {
-        public HttpTestServer(IOptions<StandaloneKestrelServerOptions> options, IConnectionListenerFactory transportFactory,
+        public HttpTestServer(IOptions<StandaloneKestrelServerOptions> options,
+            IConnectionListenerFactory transportFactory,
             ILoggerFactory loggerFactory) : base(options, transportFactory, loggerFactory)
         {
         }
