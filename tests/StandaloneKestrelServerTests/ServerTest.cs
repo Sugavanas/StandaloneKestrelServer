@@ -88,7 +88,7 @@ namespace StandaloneKestrelServerTests
 
             serverTypeMock.SetupGet(c => c.Value).Returns(typeof(HttpTestServer).AssemblyQualifiedName ?? "");
             applicationTypeMock.SetupGet(c => c.Value).Returns(typeof(Application).AssemblyQualifiedName ?? "");
-            reloadTokenMock.Setup(c => c.RegisterChangeCallback(It.IsAny<Action<object>>(), It.IsAny<object>()))
+            reloadTokenMock.Setup(c => c.RegisterChangeCallback(It.IsAny<Action<object?>>(), It.IsAny<object>()))
                 .Callback<Action<object>, object>((action, o) =>
                 {
                     callback = action;

@@ -186,8 +186,11 @@ namespace TS.StandaloneKestrelServer
 
         protected virtual void RegisterConfigurationChangeCallback(IChangeToken? reloadToken)
         {
-            static void ConfigurationChangeCallback(object state)
+            static void ConfigurationChangeCallback(object? state)
             {
+                if (state is null)
+                    return;
+                
                 var service = (StandaloneKestrelServerService) state;
                 Task.Run(service.OnConfigurationChangeAsync);
             }
