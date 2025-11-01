@@ -1,11 +1,11 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.AspNetCore.Connections;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 
 namespace TS.StandaloneKestrelServer.Extensions
@@ -19,6 +19,11 @@ namespace TS.StandaloneKestrelServer.Extensions
             service.AddOptions<StandaloneKestrelServerOptions>();
             service
                 .AddTransient<IConfigureOptions<StandaloneKestrelServerOptions>, StandaloneKestrelServerOptionsSetup>();
+            
+            // Required for routing to work
+            // TODO: Make this optional 
+            service.TryAddSingleton(sp => new DiagnosticListener("TS.StandaloneKestrelServer"));
+            service.TryAddSingleton<DiagnosticSource>(sp => sp.GetRequiredService<DiagnosticListener>());
             
             // The following is required to add kestrel specific services which are currently internal
             // https://github.com/dotnet/aspnetcore/issues/48956
