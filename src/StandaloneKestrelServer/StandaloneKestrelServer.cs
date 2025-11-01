@@ -1,6 +1,6 @@
+using System;
 using Microsoft.AspNetCore.Connections;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
-using Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -17,6 +17,7 @@ namespace TS.StandaloneKestrelServer
         {
         }
 
+        [Obsolete("If KestrelServerOptions needs to be passed in directly, use KestrelServer class directly")]
         public StandaloneKestrelServer(IOptions<KestrelServerOptions> options,
             IConnectionListenerFactory transportFactory, ILoggerFactory loggerFactory)
             : base(options, transportFactory, loggerFactory)
