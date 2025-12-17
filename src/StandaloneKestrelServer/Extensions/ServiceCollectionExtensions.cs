@@ -46,7 +46,8 @@ namespace TS.StandaloneKestrelServer.Extensions
         public static IServiceCollection ConfigureStandaloneKestrelServer(
             this IServiceCollection serviceCollection, IConfiguration section)
         {
-            serviceCollection.Configure((StandaloneKestrelServerOptions options) => options.Configure(section, true));
+            serviceCollection.AddOptions<StandaloneKestrelServerOptions>().Bind(section);
+            serviceCollection.PostConfigure((StandaloneKestrelServerOptions options) => options.Configure(section, true));
             return serviceCollection;
         }
 
